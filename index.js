@@ -26,9 +26,9 @@ app.get('/login', (req, res) => {
             return;
         }
         console.log(result)
-        const emoloyee_account_id = result[0].id;
+        const employee_account_id = result[0].id;
 
-        db_connection.query(`select * from session where employee_id = ${emoloyee_account_id} order by start desc`, (err, result) => {
+        db_connection.query(`select * from session where employee_id = ${employee_account_id} order by start desc limit 1`, (err, result) => {
             if (err) {
                 res.status(500).json('Some problems with database :(');
                 console.log(err);
@@ -37,12 +37,12 @@ app.get('/login', (req, res) => {
 
             console.log(result);
 
-            if (result[1].end === null){
+            if (result.length > 0 && result[0].end === null){
                 res.status(500).json('There is an active session')
                 return
             }
 
-            db_connection.query(`insert into session (employee_id, start) values (${emoloyee_account_id}, \'2024-02-16 19:00:00\')`, (err, result) => {
+            db_connection.query(`insert into session (employee_id, start) values (${employee_account_id}, current_timestamp())`, (err, result) => {
                 console.log(err || result)
                 res.status(200).json("Authenticate. Session id is: " + result.insertId )
             })
@@ -51,11 +51,40 @@ app.get('/login', (req, res) => {
         })
 
     })
-
-
-
 })
 
-console.log('hello')
+app.get('/logout', (req, res) => {
+    console.log(req.body);
+    const sessionID = req.body.sessionID;
 
-app.listen(PORT, () => console.log('server starts'))
+    db_connection.query(`select end from session where id = '${sessionID}'`, (err, result) =>{
+        if(err){
+            console.log(err);
+            res.status(500).json(err);
+            return
+        }
+
+        if (result.length < 1){
+            res.status(500).json("No session with this id")
+            return;
+        }
+
+        const sessionEndTime = result[0].end;
+
+        if (sessionEndTime != null){
+            res.status(500).json("Session is ended");
+            return;
+        }
+
+        db_connection.query(`update session set end = current_timestamp() where id = ${sessionID}`, (err, result) =>{
+            if(err) {
+                console.log(err);
+                res.status(500).json(err);
+                return
+            }
+
+            res.status(200).json("You have logout")
+        })
+    })
+})
+app.listen(PORT, () => console.log('SERVER STARTS'))

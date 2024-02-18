@@ -3,4 +3,4 @@
 /httpRequests
 /node_modules/
 /.idea
-
+.env
