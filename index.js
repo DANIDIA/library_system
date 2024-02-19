@@ -9,9 +9,10 @@ const db_connection = mysql.createConnection(databaseConnectionConfig);
 const app = express();
 
 app.use(express.json())
+
 app.get('/login', (req, res) => {
     db_connection
-        .query(`select id, name, surname, role from employee_account where login = '${req.body.login}' and password = '${req.body.password}'`,
+        .query(`select id from employee_account where login = '${req.body.login}' and password = '${req.body.password}'`,
             (err, result) =>{
         if (err) {
             res.status(500).json('Some problems with database');
@@ -20,7 +21,7 @@ app.get('/login', (req, res) => {
         }
 
         if (result.length === 0){
-            res.status(500).json('No accounts with this login and password')
+            res.status(500).json('No accounts with this login or password')
             return;
         }
 
@@ -87,4 +88,5 @@ app.get('/logout', (req, res) => {
         })
     })
 })
+
 app.listen(PORT, () => console.log('SERVER STARTS'))
