@@ -49,35 +49,36 @@ export class UserController {
      * @param {Request} request
      * @param {Response} response
      * */
-    logout(request, response){
-        const sessionID = request.body.sessionID;
+    async logout(request, response){
+        try{
+            const sessionID = request.body.sessionID;
 
-        this._dbConnection.query(`select end from session where id = '${sessionID}'`)
-            .on('error', (err) => {
-                response.status(500).json('Some problems with database');
-                console.log(err)
-            })
-            .on('result', (result) => {
-                if (result.length === 0){
-                    response.status(500).json("No session with this id")
-                    return;
-                }
+            const [sessions] = await this._dbConnection.query(
+                'SELECT end FROM session WHERE id = ?',
+                [sessionID]
+            );
 
-                const sessionEndTime = result[0].end;
+            if (sessions.length === 0) {
+                response.status(500).json('No session with id ' + sessionID)
+                return;
+            }
 
-                if (sessionEndTime != null){
-                    response.status(500).json("Session is ended");
-                    return;
-                }
+            const sessionEndTime = sessions[0].end;
 
-                this._dbConnection.query(`update session set end = current_timestamp() where id = ${sessionID}`)
-                    .on('error', (err) => {
-                        response.status(500).json('Some problems with database');
-                        console.log(err)
-                    })
-                    .on('result', (result) => {
-                        res.status(200).json("You have logout")
-                    })
-            })
+            if (sessionEndTime != null) {
+                response.status(500).json("Session is ended");
+                return;
+            }
+
+            await this._dbConnection.query(
+                'UPDATE session SET end = CURRENT_TIMESTAMP() WHERE id = ?',
+                [sessionID]
+            );
+
+            response.status(200).json('Logout complete');
+        } catch (e) {
+            console.log(e);
+            response.status(500).json('oops...');
+        }
     }
 }

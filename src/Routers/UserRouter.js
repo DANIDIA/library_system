@@ -6,7 +6,7 @@ export function userRouter (dbConnection) {
     const userController = new UserController(dbConnection);
 
     userRouter.get('/login', (res, req) => userController.login(res, req));
-    userRouter.get('/logout', (res, req) => userController.login(res, req));
+    userRouter.get('/logout', (res, req) => userController.logout(res, req));
 
     return userRouter;
 }
