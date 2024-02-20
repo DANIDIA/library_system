@@ -15,7 +15,7 @@ const connection = mysql.createConnection({
 
 const app = express();
 app.use(express.json());
-// app.use('/user', userRouter(connection))
+app.use('/user', userRouter(connection))
 
 app.listen(PORT, () => console.log('SERVER STARTS'))
 

@@ -1,6 +1,6 @@
 export class UserController {
     /**
-     * @param {Connection} databaseConnection */
+     * @param {PromiseConnection} databaseConnection */
     constructor(databaseConnection) {
         this._dbConnection = databaseConnection;
     }
@@ -9,44 +9,40 @@ export class UserController {
      * @param {Request} request
      * @param {Response} response
      * */
-    login(request, response){
-        this._dbConnection
-            .query(`select id from employee_account where login = '${request.body.login}' and password = '${request.body.password} limit 1'`)
-            .on('error', (err) => {
-                response.status(500).json('Some problems with database');
-                console.log(err)
-            })
-            .on('result', (result => {
-                if (result.length === 0){
-                    response.status(500).json('No accounts with this login or password');
-                    return;
-                }
-                const empoyeeID = result.id;
+    async login(request, response){
+        try {
+            const [users] = await this._dbConnection.query(
+                'SELECT id FROM employee_account WHERE login = ? AND password = ?',
+                [request.body.login, request.body.password]
+            );
 
-                this._dbConnection.query(`select * from session where employee_id = ${empoyeeID} order by start desc limit 1`)
-                    .on('error', (err) => {
-                        response.status(500).json('Some problems with database');
-                        console.log(err)
-                    })
-                    .on('result', (result) => {
-                        const sessionEndTime = result.end;
+            if (users.length === 0) {
+                response.status(500).json('No account with this login or password')
+                return;
+            }
 
-                        if (result.length > 0 && sessionEndTime === null){
-                            response.status(500).json('There is an active session');
-                            return;
-                        }
+            const userID = users[0].id;
 
-                        this._dbConnection.query(`insert into session (employee_id, start) values (${empoyeeID}, current_timestamp())`)
-                            .on('error', (err) => {
-                                response.status(500).json('some problems with database');
-                                console.log(err)
-                            })
-                            .on('result', (result) => {
-                                response.status(200).json(JSON.stringify({sessionID: result.insertId}))
-                            })
-                    })
-            }))
+            const [sessions] = await this._dbConnection.query(
+                'SELECT * FROM session WHERE employee_id = ? ORDER BY start DESC LIMIT 1',
+                [userID]
+            )
 
+            if (sessions.length > 0 && sessions[0].end === null) {
+                response.status(500).json('There is an active session');
+                return;
+            }
+
+            const [insertionData] = await this._dbConnection.query(
+                'INSERT INTO session (employee_id, start) values (?, current_timestamp())',
+                [userID]
+            )
+
+            response.status(200).json(JSON.stringify({sessionID: insertionData.insertId}));
+        } catch (e) {
+            response.status(500).json('oops...');
+            console.log(e);
+        }
     }
 
     /**
