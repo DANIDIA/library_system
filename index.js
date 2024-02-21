@@ -1,7 +1,7 @@
 import express from 'express';
 import mysql from 'mysql2';
 import dotenv from 'dotenv';
-import { userRouter } from "./src/index.js";
+import {readerRouter, userRouter} from "./src/index.js";
 
 dotenv.config();
 const PORT = 5000;
@@ -15,7 +15,8 @@ const connection = mysql.createConnection({
 
 const app = express();
 app.use(express.json());
-app.use('/user', userRouter(connection))
+app.use('/user', userRouter(connection));
+app.use('/reader', readerRouter(connection));
 
 app.listen(PORT, () => console.log('SERVER STARTS'))
 

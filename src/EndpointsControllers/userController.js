@@ -1,6 +1,7 @@
 export class UserController {
     /**
-     * @param {PromiseConnection} databaseConnection */
+     * @param {PromiseConnection} databaseConnection
+     * */
     constructor(databaseConnection) {
         this._dbConnection = databaseConnection;
     }
