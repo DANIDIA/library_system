@@ -11,4 +11,5 @@ readerRouter.put('/change_data', authenticate(readerController.changeData));
 readerRouter.put('/receive_book');
 readerRouter.put('/return_book');
 readerRouter.put('/block', authenticate(readerController.block));
+readerRouter.put('/unblock', authenticate(readerController.unblock));
 readerRouter.delete('/delete');

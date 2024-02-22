@@ -90,6 +90,27 @@ class ReaderController {
 
         response.status(200).json('Reader blocked');
     }
+
+    /**
+     *  @param {Request} request
+     *  @param {Response} response
+     *
+     * */
+    async unblock (request, response) {
+        const readerID = request.body.readerID;
+
+        if (!(await readerExist(readerID))) {
+            response.status(500).json('No reader with id: ' + readerID);
+            return;
+        }
+
+        await connection.query(
+            'UPDATE reader SET status = ? WHERE id = ?',
+            [accountStatus.ACTIVE, readerID]
+        );
+
+        response.status(200).json('Reader unblocked');
+    }
 }
 
 async function readerExist (readerID) {
