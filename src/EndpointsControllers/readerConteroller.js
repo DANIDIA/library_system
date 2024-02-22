@@ -38,6 +38,22 @@ class ReaderController {
      * @param {Request} request
      * @param {Response} response
      * */
+    async getMany (request, response) {
+        const fromID = request.body.fromID;
+        const amount = request.body.amount;
+
+        const [readers] = await connection.query(
+            'SELECT * FROM reader WHERE id >= ? LIMIT ?',
+            [fromID, amount]
+        );
+
+        response.status(500).json(JSON.stringify(readers));
+    }
+
+    /**
+     * @param {Request} request
+     * @param {Response} response
+     * */
     async changeData (request, response) {
         const readerID = request.body.readerID;
 
