@@ -1,10 +1,10 @@
-import {role} from "./role.js";
-import {getSessionStatus, getUserBySession} from "./database.js";
-import {sessionStatus} from "./sessionStatus.js";
+import { role } from './role.js';
+import { getSessionStatus, getUserBySession } from './database.js';
+import { sessionStatus } from './sessionStatus.js';
 
-export function authenticate(endpointHandler, allowedRoles = [role.ADMIN, role.DEPARTMENT_MANAGER, role.LIBRARIAN], ){
+export function authenticate (endpointHandler, allowedRoles = [role.ADMIN, role.DEPARTMENT_MANAGER, role.LIBRARIAN]) {
     return async (request, response) => {
-        try{
+        try {
             const sessionID = request.body.sessionID;
             const status = await getSessionStatus(sessionID);
 
@@ -25,7 +25,7 @@ export function authenticate(endpointHandler, allowedRoles = [role.ADMIN, role.D
             }
 
             endpointHandler(request, response, user);
-        }catch (e) {
+        } catch (e) {
             response.status(500).json('oops...');
             console.log(e);
         }

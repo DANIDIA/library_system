@@ -1,11 +1,11 @@
-import {connection, getSessionStatus, sessionStatus} from "../Helpers/index.js";
+import { connection, getSessionStatus, sessionStatus } from '../Helpers/index.js';
 
 class UserController {
     /**
      * @param {Request} request
      * @param {Response} response
      * */
-    async login(request, response){
+    async login (request, response) {
         try {
             const [users] = await connection.query(
                 'SELECT id FROM employee_account WHERE login = ? AND password = ?',
@@ -13,7 +13,7 @@ class UserController {
             );
 
             if (users.length === 0) {
-                response.status(500).json('No account with this login or password')
+                response.status(500).json('No account with this login or password');
                 return;
             }
 
@@ -22,7 +22,7 @@ class UserController {
             const [sessions] = await connection.query(
                 'SELECT * FROM session WHERE employee_id = ? ORDER BY start DESC LIMIT 1',
                 [userID]
-            )
+            );
 
             if (sessions[0].end === null) {
                 response.status(500).json('There is an active session');
@@ -32,9 +32,9 @@ class UserController {
             const [insertionData] = await connection.query(
                 'INSERT INTO session (employee_id, start) values (?, current_timestamp())',
                 [userID]
-            )
+            );
 
-            response.status(200).json(JSON.stringify({sessionID: insertionData.insertId}));
+            response.status(200).json(JSON.stringify({ sessionID: insertionData.insertId }));
         } catch (e) {
             response.status(500).json('oops...');
             console.log(e);
@@ -45,18 +45,18 @@ class UserController {
      * @param {Request} request
      * @param {Response} response
      * */
-    async logout(request, response){
-        try{
+    async logout (request, response) {
+        try {
             const sessionID = request.body.sessionID;
             const status = await getSessionStatus(sessionID);
 
             if (status === sessionStatus.NOT_EXIST) {
-                response.status(500).json('No session with id ' + sessionID)
+                response.status(500).json('No session with id ' + sessionID);
                 return;
             }
 
             if (status === sessionStatus.IS_ENDED) {
-                response.status(500).json("Session has already ended");
+                response.status(500).json('Session has already ended');
                 return;
             }
 
