@@ -2,10 +2,6 @@ import { connection } from '../Helpers/index.js';
 import { accountStatus } from '../enums/index.js';
 
 class ReaderController {
-    /**
-     * @param {Request} request
-     * @param {Response} response
-     * */
     async create (request, response, user) {
         const [insertionData] = await connection.query(
             'INSERT INTO reader (name, surname, phone_number, who_add_id, addition_time, books_amount, status) VALUES (?, ?, ?, ?, NOW(), 0, ?)',
@@ -15,10 +11,6 @@ class ReaderController {
         response.status(200).json(JSON.stringify({ readerID: insertionData.insertId }));
     }
 
-    /**
-     * @param {Request} request
-     * @param {Response} response
-     * */
     async getOne (request, response) {
         const readerID = request.body.readerID;
 
@@ -35,10 +27,6 @@ class ReaderController {
         response.status(200).json(JSON.stringify(readers[0]));
     }
 
-    /**
-     * @param {Request} request
-     * @param {Response} response
-     * */
     async getMany (request, response) {
         const fromID = request.body.fromID;
         const amount = request.body.amount;
@@ -51,10 +39,6 @@ class ReaderController {
         response.status(500).json(JSON.stringify(readers));
     }
 
-    /**
-     * @param {Request} request
-     * @param {Response} response
-     * */
     async changeData (request, response) {
         const readerID = request.body.readerID;
 
@@ -87,11 +71,6 @@ class ReaderController {
         response.status(200).json('Successfully update');
     }
 
-    /**
-     *  @param {Request} request
-     *  @param {Response} response
-     *
-     * */
     async block (request, response) {
         const readerID = request.body.readerID;
 
@@ -108,11 +87,6 @@ class ReaderController {
         response.status(200).json('Reader blocked');
     }
 
-    /**
-     *  @param {Request} request
-     *  @param {Response} response
-     *
-     * */
     async unblock (request, response) {
         const readerID = request.body.readerID;
 

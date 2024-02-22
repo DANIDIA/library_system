@@ -2,10 +2,6 @@ import { connection, getSessionStatus } from '../Helpers/index.js';
 import { sessionStatus } from '../enums/index.js';
 
 class UserController {
-    /**
-     * @param {Request} request
-     * @param {Response} response
-     * */
     async login (request, response) {
         try {
             const [users] = await connection.query(
@@ -42,10 +38,6 @@ class UserController {
         }
     }
 
-    /**
-     * @param {Request} request
-     * @param {Response} response
-     * */
     async logout (request, response) {
         try {
             const sessionID = request.body.sessionID;
