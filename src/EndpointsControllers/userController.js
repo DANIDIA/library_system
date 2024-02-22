@@ -1,4 +1,5 @@
-import { connection, getSessionStatus, sessionStatus } from '../Helpers/index.js';
+import { connection, getSessionStatus } from '../Helpers/index.js';
+import { sessionStatus } from '../enums/index.js';
 
 class UserController {
     /**

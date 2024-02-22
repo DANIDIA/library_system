@@ -1,6 +1,5 @@
-import { role } from './role.js';
+import { role, sessionStatus } from '../enums/index.js';
 import { getSessionStatus, getUserBySession } from './database.js';
-import { sessionStatus } from './sessionStatus.js';
 
 export function authenticate (endpointHandler, allowedRoles = [role.ADMIN, role.DEPARTMENT_MANAGER, role.LIBRARIAN]) {
     return async (request, response) => {

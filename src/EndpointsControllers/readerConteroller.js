@@ -1,4 +1,5 @@
-import { accountStatus, connection } from '../Helpers/index.js';
+import { connection } from '../Helpers/index.js';
+import { accountStatus } from '../enums/index.js';
 
 class ReaderController {
     /**

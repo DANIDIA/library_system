@@ -1,6 +1,6 @@
 import Router from 'express';
 import { readerController } from '../EndpointsControllers/index.js';
-import { authenticate } from '../Helpers/authentication.js';
+import { authenticate } from '../Helpers/index.js';
 
 export const readerRouter = new Router();
 

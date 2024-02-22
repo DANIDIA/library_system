@@ -1,5 +1,5 @@
 import mysql from 'mysql2';
-import { sessionStatus } from './sessionStatus.js';
+import { sessionStatus } from '../enums/index.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
