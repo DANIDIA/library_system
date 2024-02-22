@@ -1,14 +1,7 @@
 import Router from 'express';
-import { UserController } from '../index.js';
+import { userController } from '../index.js';
 
-export function userRouter (dbConnection) {
-    const userRouter = new Router();
-    const userController = new UserController(dbConnection);
+export const userRouter = new Router();
 
-    userRouter.get('/login', async (res, req) =>
-        await userController.login(res, req));
-    userRouter.get('/logout', async (res, req) =>
-        await userController.logout(res, req));
-
-    return userRouter;
-}
+userRouter.get('/login', userController.login);
+userRouter.get('/logout', userController.logout);

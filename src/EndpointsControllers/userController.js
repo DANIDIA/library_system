@@ -1,18 +1,13 @@
-export class UserController {
-    /**
-     * @param {PromiseConnection} databaseConnection
-     * */
-    constructor(databaseConnection) {
-        this._dbConnection = databaseConnection;
-    }
+import {connection, getSessionStatus, sessionStatus} from "../Helpers/index.js";
 
+class UserController {
     /**
      * @param {Request} request
      * @param {Response} response
      * */
     async login(request, response){
         try {
-            const [users] = await this._dbConnection.query(
+            const [users] = await connection.query(
                 'SELECT id FROM employee_account WHERE login = ? AND password = ?',
                 [request.body.login, request.body.password]
             );
@@ -24,17 +19,17 @@ export class UserController {
 
             const userID = users[0].id;
 
-            const [sessions] = await this._dbConnection.query(
+            const [sessions] = await connection.query(
                 'SELECT * FROM session WHERE employee_id = ? ORDER BY start DESC LIMIT 1',
                 [userID]
             )
 
-            if (sessions.length > 0 && sessions[0].end === null) {
+            if (sessions[0].end === null) {
                 response.status(500).json('There is an active session');
                 return;
             }
 
-            const [insertionData] = await this._dbConnection.query(
+            const [insertionData] = await connection.query(
                 'INSERT INTO session (employee_id, start) values (?, current_timestamp())',
                 [userID]
             )
@@ -53,25 +48,19 @@ export class UserController {
     async logout(request, response){
         try{
             const sessionID = request.body.sessionID;
+            const status = await getSessionStatus(sessionID);
 
-            const [sessions] = await this._dbConnection.query(
-                'SELECT end FROM session WHERE id = ?',
-                [sessionID]
-            );
-
-            if (sessions.length === 0) {
+            if (status === sessionStatus.NOT_EXIST) {
                 response.status(500).json('No session with id ' + sessionID)
                 return;
             }
 
-            const sessionEndTime = sessions[0].end;
-
-            if (sessionEndTime != null) {
-                response.status(500).json("Session is ended");
+            if (status === sessionStatus.IS_ENDED) {
+                response.status(500).json("Session has already ended");
                 return;
             }
 
-            await this._dbConnection.query(
+            await connection.query(
                 'UPDATE session SET end = CURRENT_TIMESTAMP() WHERE id = ?',
                 [sessionID]
             );
@@ -83,3 +72,5 @@ export class UserController {
         }
     }
 }
+
+export const userController = new UserController();

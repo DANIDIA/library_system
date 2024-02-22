@@ -1,19 +1,15 @@
 import Router from 'express';
-import {ReaderController, role} from "../EndpointsControllers/index.js";
+import { readerController }  from "../EndpointsControllers/index.js";
+import { authenticate } from "../Helpers/authentication.js";
 
-export function readerRouter(dbConnection){
-    const router = new Router();
-    const readerController = new ReaderController(dbConnection);
 
-    router.get('/get_one');
-    router.get('/get_many');
-    router.post('/create', async (req, res) =>
-    { await readerController.create(req, res, [role.ADMIN, role.DEPARTMENT_MANAGER, role.LIBRARIAN]) });
-    router.put('/change_data');
-    router.put('/receive_book');
-    router.put('/return_book');
-    router.put('/block');
-    router.delete('/delete');
+export const readerRouter = new Router();
 
-    return router;
-}
+readerRouter.get('/get_one', authenticate(readerController.getOne));
+readerRouter.get('/get_many');
+readerRouter.post('/create', authenticate(readerController.create));
+readerRouter.put('/change_data', authenticate(readerController.changeData));
+readerRouter.put('/receive_book');
+readerRouter.put('/return_book');
+readerRouter.put('/block');
+readerRouter.delete('/delete');
