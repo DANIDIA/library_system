@@ -10,5 +10,5 @@ readerRouter.post('/create', authenticate(readerController.create));
 readerRouter.put('/change_data', authenticate(readerController.changeData));
 readerRouter.put('/receive_book');
 readerRouter.put('/return_book');
-readerRouter.put('/block');
+readerRouter.put('/block', authenticate(readerController.block));
 readerRouter.delete('/delete');
