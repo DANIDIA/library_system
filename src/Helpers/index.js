@@ -1,2 +1,3 @@
 export * from './database.js';
-export * from './authentication.js';
+export * from './authenticate.js';
+export * from './errorDecorator.js';
