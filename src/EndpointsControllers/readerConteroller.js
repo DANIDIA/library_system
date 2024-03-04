@@ -1,8 +1,10 @@
-import { connection } from '../Helpers/index.js';
+import { authenticate, connection } from '../Helpers/index.js';
 import { accountStatus } from '../enums/index.js';
 
 class ReaderController {
-    async create (request, response, user) {
+    async create (request, response) {
+        const user = await authenticate(request.body.sessionID);
+
         const [insertionData] = await connection.query(
             'INSERT INTO reader (name, surname, phone_number, who_add_id, addition_time, books_amount, status) VALUES (?, ?, ?, ?, NOW(), 0, ?)',
             [request.body.name, request.body.surname, request.body.phoneNumber, user.id, accountStatus.ACTIVE]
@@ -12,6 +14,7 @@ class ReaderController {
     }
 
     async getOne (request, response) {
+        await authenticate(request.body.sessionID);
         const readerID = request.body.readerID;
 
         if (!(await readerExist())) {
@@ -28,6 +31,7 @@ class ReaderController {
     }
 
     async getMany (request, response) {
+        await authenticate(request.body.sessionID);
         const fromID = request.body.fromID;
         const amount = request.body.amount;
 
@@ -40,6 +44,7 @@ class ReaderController {
     }
 
     async changeData (request, response) {
+        await authenticate(request.body.sessionID);
         const readerID = request.body.readerID;
 
         if (!(await readerExist(readerID))) {
@@ -72,6 +77,7 @@ class ReaderController {
     }
 
     async block (request, response) {
+        await authenticate(request.body.sessionID);
         const readerID = request.body.readerID;
 
         if (!(await readerExist(readerID))) {
@@ -88,6 +94,7 @@ class ReaderController {
     }
 
     async unblock (request, response) {
+        await authenticate(request.body.sessionID);
         const readerID = request.body.readerID;
 
         if (!(await readerExist(readerID))) {
