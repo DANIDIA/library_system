@@ -1,10 +1,8 @@
-import { authenticate, connection } from '../Helpers/index.js';
+import { connection } from '../Helpers/index.js';
 import { accountStatus } from '../enums/index.js';
 
 class ReaderController {
-    async create (request, response) {
-        const user = await authenticate(request.body.sessionID);
-
+    async create (request, response, user) {
         const [insertionData] = await connection.query(
             'INSERT INTO reader (name, surname, phone_number, who_add_id, addition_time, books_amount, status) VALUES (?, ?, ?, ?, NOW(), 0, ?)',
             [request.body.name, request.body.surname, request.body.phoneNumber, user.id, accountStatus.ACTIVE]
@@ -14,10 +12,9 @@ class ReaderController {
     }
 
     async getOne (request, response) {
-        await authenticate(request.body.sessionID);
         const readerID = request.body.readerID;
 
-        if (!(await readerExist())) {
+        if (!(await readerExist(readerID))) {
             response.status(500).json('No reader with id: ' + readerID);
             return;
         }
@@ -31,7 +28,6 @@ class ReaderController {
     }
 
     async getMany (request, response) {
-        await authenticate(request.body.sessionID);
         const fromID = request.body.fromID;
         const amount = request.body.amount;
 
@@ -40,11 +36,10 @@ class ReaderController {
             [fromID, amount]
         );
 
-        response.status(500).json(JSON.stringify(readers));
+        response.status(200).json(JSON.stringify(readers));
     }
 
     async changeData (request, response) {
-        await authenticate(request.body.sessionID);
         const readerID = request.body.readerID;
 
         if (!(await readerExist(readerID))) {
@@ -77,7 +72,6 @@ class ReaderController {
     }
 
     async block (request, response) {
-        await authenticate(request.body.sessionID);
         const readerID = request.body.readerID;
 
         if (!(await readerExist(readerID))) {
@@ -94,7 +88,6 @@ class ReaderController {
     }
 
     async unblock (request, response) {
-        await authenticate(request.body.sessionID);
         const readerID = request.body.readerID;
 
         if (!(await readerExist(readerID))) {
