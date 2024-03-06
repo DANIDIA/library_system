@@ -1,4 +1,4 @@
-import { connection } from '../Helpers/index.js';
+import { connection, recordExist } from '../Helpers/index.js';
 import { accountStatus } from '../enums/index.js';
 
 class ReaderController {
@@ -14,7 +14,7 @@ class ReaderController {
     async getOne (request, response) {
         const readerID = request.body.readerID;
 
-        if (!(await readerExist(readerID))) {
+        if (!(await recordExist(readerID, 'reader'))) {
             response.status(500).json('No reader with id: ' + readerID);
             return;
         }
@@ -42,7 +42,7 @@ class ReaderController {
     async changeData (request, response) {
         const readerID = request.body.readerID;
 
-        if (!(await readerExist(readerID))) {
+        if (!(await recordExist(readerID, 'reader'))) {
             response.status(500).json('No reader with id: ' + readerID);
             return;
         }
@@ -74,7 +74,7 @@ class ReaderController {
     async block (request, response) {
         const readerID = request.body.readerID;
 
-        if (!(await readerExist(readerID))) {
+        if (!(await recordExist(readerID, 'reader'))) {
             response.status(500).json('No reader with id: ' + readerID);
             return;
         }
@@ -90,7 +90,7 @@ class ReaderController {
     async unblock (request, response) {
         const readerID = request.body.readerID;
 
-        if (!(await readerExist(readerID))) {
+        if (!(await recordExist(readerID, 'reader'))) {
             response.status(500).json('No reader with id: ' + readerID);
             return;
         }
@@ -102,14 +102,6 @@ class ReaderController {
 
         response.status(200).json('Reader unblocked');
     }
-}
-
-async function readerExist (readerID) {
-    const [readers] = await connection.query(
-        'SELECT * FROM reader WHERE id = ?',
-        [readerID]
-    );
-    return readers.length > 0;
 }
 
 export const readerController = new ReaderController();

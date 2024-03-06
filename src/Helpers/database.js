@@ -38,3 +38,16 @@ export async function getUserBySession (sessionID) {
 
     return users[0];
 }
+
+/**
+ * @param{string} recordID
+ * @param{string} tableName
+ * @return{boolean}
+ * */
+export async function recordExist (recordID, tableName) {
+    const [records] = await connection.query(
+        `SELECT * FROM ${tableName} WHERE id = ?`,
+        [recordID]
+    );
+    return records.length > 0;
+}
