@@ -42,7 +42,7 @@ export async function getUserBySession (sessionID) {
 /**
  * @param{string} recordID
  * @param{string} tableName
- * @return{boolean}
+ * @return{promise<boolean>}
  * */
 export async function recordExist (recordID, tableName) {
     const [records] = await connection.query(
