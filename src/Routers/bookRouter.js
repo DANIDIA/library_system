@@ -1,13 +1,15 @@
-import Router from 'express';
+import express from 'express';
 import { bookController } from '../EndpointsControllers/index.js';
-import { errorDecorator, allowedRolesDecorator } from '../Helpers/index.js';
+import { errorDecorator, allowedRolesDecorator, authenticate } from '../Helpers/index.js';
 
-export const bookRouter = new Router();
+export const bookRouter = express.Router();
 
-bookRouter.get('/get_one', errorDecorator(allowedRolesDecorator(bookController.getOne)));
-bookRouter.get('/get_many', errorDecorator(allowedRolesDecorator(bookController.getMany)));
-bookRouter.post('/add', errorDecorator(allowedRolesDecorator(bookController.create)));
-bookRouter.post('/receive', errorDecorator(allowedRolesDecorator(bookController.receive)));
-bookRouter.post('/return', errorDecorator(allowedRolesDecorator(bookController.return)));
-bookRouter.put('/change_data', errorDecorator(allowedRolesDecorator(bookController.changeData)));
+bookRouter.use(authenticate);
+
+bookRouter.get('/get_one', errorDecorator(bookController.getOne));
+bookRouter.get('/get_many', errorDecorator(bookController.getMany));
+bookRouter.post('/add', errorDecorator(bookController.create));
+bookRouter.post('/receive', errorDecorator(bookController.receive));
+bookRouter.post('/return', errorDecorator(bookController.return));
+bookRouter.put('/change_data', errorDecorator(bookController.changeData));
 bookRouter.delete('/delete');
