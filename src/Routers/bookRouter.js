@@ -6,8 +6,8 @@ export const bookRouter = express.Router();
 
 bookRouter.use(authenticate);
 
-bookRouter.get('/get_one', validateRoles(), bookController.getOne);
-bookRouter.get('/get_many', validateRoles(), bookController.getMany);
+bookRouter.get('/get_one', validateRoles(), async (req, res) => await bookController.getOne(req, res));
+bookRouter.get('/get_many', validateRoles(), async (req, res) => await bookController.getMany(req, res));
 bookRouter.post('/add', validateRoles(), bookController.create);
 bookRouter.post('/receive', validateRoles(), bookController.receive);
 bookRouter.post('/return', validateRoles(), bookController.return);

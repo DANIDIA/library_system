@@ -1,7 +1,12 @@
 import { connection, getUserBySession } from '../Helpers/index.js';
 import { accountStatus } from '../enums/index.js';
+import { DefaultController } from './defaultController.js';
 
-class ReaderController {
+class ReaderController extends DefaultController {
+    constructor () {
+        super('reader');
+    }
+
     async create (req, res) {
         const user = await getUserBySession(req.body.sessionID);
 
@@ -11,29 +16,6 @@ class ReaderController {
         );
 
         res.status(200).json({ readerID: insertionData.insertId });
-    }
-
-    async getOne (req, res) {
-        const readerID = req.body.readerID;
-
-        const [readers] = await connection.query(
-            'SELECT * FROM reader WHERE id = ?',
-            [readerID]
-        );
-
-        res.status(200).send(readers[0]);
-    }
-
-    async getMany (req, res) {
-        const fromID = req.body.fromID;
-        const amount = req.body.amount;
-
-        const [readers] = await connection.query(
-            'SELECT * FROM reader WHERE id >= ? LIMIT ?',
-            [fromID, amount]
-        );
-
-        res.status(200).json(readers);
     }
 
     async changeData (req, res) {

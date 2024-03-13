@@ -1,6 +1,17 @@
 import { connection } from './database.js';
 import { sessionStatus } from '../enums/index.js';
 
+export async function handleQuery ({ text, values }) {
+    let _err;
+    const [_values] = await (connection.query(text, values)
+        .then(data => data)
+        .catch(err => {
+            _err = err;
+        }));
+
+    return { values: _values, err: _err };
+}
+
 /**
  * @param{string} sessionID
  * */

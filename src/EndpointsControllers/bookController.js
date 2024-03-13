@@ -1,8 +1,13 @@
 import { connection, getUserBySession, recordExist } from '../Helpers/index.js';
 import { MAX_BOOKS_FOR_READER } from '../Helpers/constants.js';
 import { bookAction } from '../enums/index.js';
+import { DefaultController } from './defaultController.js';
 
-class BookController {
+class BookController extends DefaultController {
+    constructor () {
+        super('book');
+    }
+
     async create (req, res) {
         const user = await getUserBySession(req.body.sessionID);
 
@@ -16,29 +21,6 @@ class BookController {
         );
 
         res.status(200).json({ bookID: insertionData.insertId });
-    }
-
-    async getOne (req, res) {
-        const bookID = req.body.bookID;
-
-        const [books] = await connection.query(
-            'SELECT * FROM book WHERE id = ?',
-            [bookID]
-        );
-
-        res.status(200).json(books[0]);
-    }
-
-    async getMany (req, res) {
-        const fromID = req.body.fromID;
-        const amount = req.body.amount;
-
-        const [books] = await connection.query(
-            'SELECT * FROM book WHERE id >= ? LIMIT ?',
-            [fromID, amount]
-        );
-
-        res.status(200).json(books);
     }
 
     async changeData (req, res) {
