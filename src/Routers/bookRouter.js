@@ -1,6 +1,6 @@
 import express from 'express';
 import { bookController } from '../EndpointsControllers/index.js';
-import { errorDecorator, allowedRolesDecorator, authenticate } from '../Helpers/index.js';
+import { errorDecorator, authenticate } from '../Helpers/index.js';
 
 export const bookRouter = express.Router();
 
