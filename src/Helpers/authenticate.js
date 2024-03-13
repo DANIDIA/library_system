@@ -1,5 +1,5 @@
 import { sessionStatus } from '../enums/index.js';
-import { getSessionStatus } from './database.js';
+import { getSessionStatus } from './helperDBFunctions.js';
 
 export async function authenticate (req, res, next) {
     const sessionID = req.body.sessionID;

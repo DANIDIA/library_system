@@ -1,5 +1,5 @@
-import { getUserBySession } from './database.js';
 import { role } from '../enums/index.js';
+import { getUserBySession } from './helperDBFunctions.js';
 
 export function validateRoles (allowedRoles = [role.LIBRARIAN, role.DEPARTMENT_MANAGER, role.ADMIN]) {
     return async (req, res, next) => {
