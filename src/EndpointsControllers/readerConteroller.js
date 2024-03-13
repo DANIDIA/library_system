@@ -1,106 +1,88 @@
-import { connection, recordExist } from '../Helpers/index.js';
+import { connection, getUserBySession } from '../Helpers/index.js';
 import { accountStatus } from '../enums/index.js';
 
 class ReaderController {
-    async create (request, response, user) {
+    async create (req, res) {
+        const user = await getUserBySession(req.body.sessionID);
+
         const [insertionData] = await connection.query(
             'INSERT INTO reader (name, surname, phone_number, who_add_id, addition_time, books_amount, status) VALUES (?, ?, ?, ?, NOW(), 0, ?)',
-            [request.body.name, request.body.surname, request.body.phoneNumber, user.id, accountStatus.ACTIVE]
+            [req.body.name, req.body.surname, req.body.phoneNumber, user.id, accountStatus.ACTIVE]
         );
 
-        response.status(200).json(JSON.stringify({ readerID: insertionData.insertId }));
+        res.status(200).json({ readerID: insertionData.insertId });
     }
 
-    async getOne (request, response) {
-        const readerID = request.body.readerID;
-
-        if (!(await recordExist(readerID, 'reader'))) {
-            response.status(500).json('No reader with id: ' + readerID);
-            return;
-        }
+    async getOne (req, res) {
+        const readerID = req.body.readerID;
 
         const [readers] = await connection.query(
             'SELECT * FROM reader WHERE id = ?',
             [readerID]
         );
 
-        response.status(200).json(JSON.stringify(readers[0]));
+        res.status(200).send(readers[0]);
     }
 
-    async getMany (request, response) {
-        const fromID = request.body.fromID;
-        const amount = request.body.amount;
+    async getMany (req, res) {
+        const fromID = req.body.fromID;
+        const amount = req.body.amount;
 
         const [readers] = await connection.query(
             'SELECT * FROM reader WHERE id >= ? LIMIT ?',
             [fromID, amount]
         );
 
-        response.status(200).json(JSON.stringify(readers));
+        res.status(200).json(readers);
     }
 
-    async changeData (request, response) {
-        const readerID = request.body.readerID;
+    async changeData (req, res) {
+        const readerID = req.body.readerID;
 
-        if (!(await recordExist(readerID, 'reader'))) {
-            response.status(500).json('No reader with id: ' + readerID);
-            return;
-        }
-
-        if (!!request.body.name && request.body.name !== '') {
+        if (req.body.name) {
             await connection.query(
                 'UPDATE reader SET name = ? WHERE id = ?',
-                [request.body.name, readerID]
+                [req.body.name, readerID]
             );
         }
 
-        if (!!request.body.surname && request.body.surname !== '') {
+        if (req.body.surname) {
             await connection.query(
                 'UPDATE reader SET surname = ? WHERE id = ?',
-                [request.body.surname, readerID]
+                [req.body.surname, readerID]
             );
         }
 
-        if (!!request.body.phoneNumber && request.body.phoneNumber !== '') {
+        if (req.body.phoneNumber) {
             await connection.query(
                 'UPDATE reader SET phone_number = ? WHERE id = ?',
-                [request.body.phoneNumber, readerID]
+                [req.body.phoneNumber, readerID]
             );
         }
 
-        response.status(200).json('Successfully update');
+        res.status(200).send('Successfully update');
     }
 
-    async block (request, response) {
-        const readerID = request.body.readerID;
-
-        if (!(await recordExist(readerID, 'reader'))) {
-            response.status(500).json('No reader with id: ' + readerID);
-            return;
-        }
+    async block (req, res) {
+        const readerID = req.body.readerID;
 
         await connection.query(
             'UPDATE reader SET status = ? WHERE id = ?',
             [accountStatus.BLOCKED, readerID]
         );
 
-        response.status(200).json('Reader blocked');
+        res.status(200).send('Reader blocked');
     }
 
-    async unblock (request, response) {
-        const readerID = request.body.readerID;
-
-        if (!(await recordExist(readerID, 'reader'))) {
-            response.status(500).json('No reader with id: ' + readerID);
-            return;
-        }
+    async unblock (req, res) {
+        const readerID = req.body.readerID;
 
         await connection.query(
             'UPDATE reader SET status = ? WHERE id = ?',
             [accountStatus.ACTIVE, readerID]
         );
 
-        response.status(200).json('Reader unblocked');
+        res.status(200).send('Reader unblocked');
     }
 }
 

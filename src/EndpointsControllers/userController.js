@@ -1,15 +1,14 @@
-import { authenticate, connection } from '../Helpers/index.js';
+import { connection } from '../Helpers/index.js';
 
 class UserController {
-    async login (request, response) {
+    async login (req, res) {
         const [users] = await connection.query(
             'SELECT id FROM employee_account WHERE login = ? AND password = ?',
-            [request.body.login, request.body.password]
+            [req.body.login, req.body.password]
         );
 
         if (users.length === 0) {
-            response.status(500).json('No account with this login or password');
-            return;
+            return res.status(400).send('Invalid login or password');
         }
 
         const userID = users[0].id;
@@ -20,8 +19,7 @@ class UserController {
         );
 
         if (sessions[0].end === null) {
-            response.status(500).json('There is an active session');
-            return;
+            return res.status(500).json('There is an active session');
         }
 
         const [insertionData] = await connection.query(
@@ -29,19 +27,18 @@ class UserController {
             [userID]
         );
 
-        response.status(200).json(JSON.stringify({ sessionID: insertionData.insertId }));
+        res.status(200).json({ sessionID: insertionData.insertId });
     }
 
-    async logout (request, response) {
-        const sessionID = request.body.sessionID;
-        await authenticate(sessionID);
+    async logout (req, res) {
+        const sessionID = req.body.sessionID;
 
         await connection.query(
             'UPDATE session SET end = CURRENT_TIMESTAMP() WHERE id = ?',
             [sessionID]
         );
 
-        response.status(200).json('Logout complete');
+        res.status(200).send('Logout complete');
     }
 }
 

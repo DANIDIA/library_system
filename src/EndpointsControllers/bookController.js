@@ -1,103 +1,104 @@
-import { connection, recordExist } from '../Helpers/index.js';
+import { connection, getUserBySession, recordExist } from '../Helpers/index.js';
 import { MAX_BOOKS_FOR_READER } from '../Helpers/constants.js';
 import { bookAction } from '../enums/index.js';
 
 class BookController {
-    async create (request, response, user) {
+    async create (req, res) {
+        const user = await getUserBySession(req.body.sessionID);
+
+        if (!(await recordExist(req.body.departmentID, 'department'))) {
+            return res.status(400).send('Department not exist');
+        }
+
         const [insertionData] = await connection.query(
             'INSERT INTO book (title, author, current_department, current_reader, who_add_id, addition_time) VALUES (?, ?, ?, ?, ?, NOW())',
-            [request.body.title, request.body.author, request.body.currentDepartment, null, user.id]
+            [req.body.title, req.body.author, req.body.currentDepartment, null, user.id]
         );
 
-        response.status(200).json(JSON.stringify({ bookID: insertionData.insertId }));
+        res.status(200).json({ bookID: insertionData.insertId });
     }
 
-    async getOne (request, response) {
-        const bookID = request.body.bookID;
-
-        if (!(await recordExist(bookID, 'book'))) {
-            response.status(500).json('No book with id: ' + bookID);
-            return;
-        }
+    async getOne (req, res) {
+        const bookID = req.body.bookID;
 
         const [books] = await connection.query(
             'SELECT * FROM book WHERE id = ?',
             [bookID]
         );
 
-        response.status(200).json(JSON.stringify(books[0]));
+        res.status(200).json(books[0]);
     }
 
-    async getMany (request, response) {
-        const fromID = request.body.fromID;
-        const amount = request.body.amount;
+    async getMany (req, res) {
+        const fromID = req.body.fromID;
+        const amount = req.body.amount;
 
         const [books] = await connection.query(
             'SELECT * FROM book WHERE id >= ? LIMIT ?',
             [fromID, amount]
         );
 
-        response.status(200).json(JSON.stringify(books));
+        res.status(200).json(books);
     }
 
-    async changeData (request, response) {
-        const bookID = request.body.bookID;
+    async changeData (req, res) {
+        const bookID = req.body.bookID;
 
-        if (!(await recordExist(bookID, 'book'))) {
-            response.status(500).json('No book with id: ' + bookID);
-            return;
+        if (!(await recordExist(req.body.currentDepartmnet, 'department'))) {
+            return res.status(400).send('Department not exist');
         }
 
-        if (!!request.body.title && request.body.title !== '') {
+        if (!(await recordExist(req.body.curentReader, 'reader'))) {
+            return res.status(400).send('Reader not exist');
+        }
+
+        if (req.body.title) {
             await connection.query(
                 'UPDATE book SET title = ? WHERE id = ?',
-                [request.body.title, bookID]
+                [req.body.title, bookID]
             );
         }
 
-        if (!!request.body.author && request.body.author !== '') {
+        if (req.body.author) {
             await connection.query(
                 'UPDATE book SET author = ? WHERE id = ?',
-                [request.body.author, bookID]
+                [req.body.author, bookID]
             );
         }
 
-        if (!!request.body.currentDepartment && request.body.currentDepartment !== '') {
+        if (req.body.currentDepartment) {
             await connection.query(
                 'UPDATE book SET current_department = ? WHERE id = ?',
-                [request.body.currentDepartment, bookID]
+                [req.body.currentDepartment, bookID]
             );
         }
 
-        if (request.body.currentReader !== '') {
+        if (req.body.currentReader) {
             await connection.query(
                 'UPDATE book SET current_reader = ? WHERE id = ?',
-                [request.body.currentReader, bookID]
+                [req.body.currentReader, bookID]
             );
         }
 
-        response.status(200).json('Successfully update');
+        res.status(200).send('Successfully update');
     }
 
-    async receive (request, response, user) {
-        console.log('receive');
-        const bookID = request.body.bookID;
-        const readerID = request.body.readerID;
-        const departmentID = request.body.departmentID;
+    async receive (req, res) {
+        const bookID = req.body.bookID;
+        const readerID = req.body.readerID;
+        const departmentID = req.body.departmentID;
+        const user = await getUserBySession(req.body.sessionID);
 
         if (!(await recordExist(bookID, 'book'))) {
-            response.status(500).json('Do not exist a book with id:' + bookID);
-            return;
+            return res.status(400).send('Book does not exist');
         }
 
         if (!(await recordExist(readerID, 'reader'))) {
-            response.status(500).json('Do not exist a reader with id:' + readerID);
-            return;
+            return res.status(400).send('Reader does not exist');
         }
 
         if (!(await recordExist(departmentID, 'department'))) {
-            response.status(500).json('Do not exist a department with id:' + departmentID);
-            return;
+            return res.status(400).send('Department does not exist');
         }
 
         const [books] = await connection.query(
@@ -108,8 +109,7 @@ class BookController {
         const receivedBook = books[0];
 
         if (receivedBook.current_reader != null) {
-            response.status(500).json('Cant receive a book');
-            return;
+            return res.status(400).send('Book was received');
         }
 
         const [readers] = await connection.query(
@@ -120,8 +120,7 @@ class BookController {
         const bookReceiver = readers[0];
 
         if (bookReceiver.books_amount >= MAX_BOOKS_FOR_READER) {
-            response.status(500).json('Reader has max amount of books');
-            return;
+            return res.status(400).json('Reader has max amount of books');
         }
 
         await connection.query(
@@ -139,21 +138,20 @@ class BookController {
             [bookID, bookReceiver.id, user.id, bookAction.RECEIVE, departmentID]
         );
 
-        response.json(200);
+        res.status(200).send('successfully received');
     }
 
-    async return (request, response, user) {
-        const bookID = request.body.bookID;
-        const departmentID = request.body.departmentID;
+    async return (req, res) {
+        const bookID = req.body.bookID;
+        const departmentID = req.body.departmentID;
+        const user = await getUserBySession(req.body.sessionID);
 
         if (!(await recordExist(bookID, 'book'))) {
-            response.status(500).json('Do not exist a book with id:' + bookID);
-            return;
+            return res.status(400).send('Book not exist');
         }
 
         if (!(await recordExist(departmentID, 'department'))) {
-            response.status(500).json('Do not exist a department with id:' + departmentID);
-            return;
+            return res.status(400).send('Department not exist');
         }
 
         const [historyRecords] = await connection.query(
@@ -162,20 +160,17 @@ class BookController {
         );
 
         if (historyRecords.length === 0) {
-            response.status(500).json('Book cant be returned');
-            return;
+            return res.status(400).send('Book was not received');
         }
 
         const lastRecord = historyRecords[0];
 
         if (lastRecord.department !== departmentID) {
-            response.status(500).json('Cant return a book in other department than department where the book was received');
-            return;
+            return res.status(400).send('Cant return a book in other department than department where the book was received');
         }
 
         if (lastRecord.action === bookAction.RETURN) {
-            response.status(500).json('Book cant be returned');
-            return;
+            return res.status(400).send('Book was returned');
         }
 
         const [readers] = await connection.query(
@@ -200,7 +195,7 @@ class BookController {
             [bookID, reader.id, user.id, bookAction.RETURN, departmentID]
         );
 
-        response.json(200);
+        res.status(200).send('Successfully returned');
     }
 }
 
