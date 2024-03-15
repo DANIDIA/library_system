@@ -1,0 +1,59 @@
+import { DefaultController } from './defaultController.js';
+import { handleQuery, recordExist } from '../Helpers/index.js';
+import sql from 'mysql-bricks';
+
+export class DepartmentController extends DefaultController {
+    constructor () {
+        super('department');
+    }
+
+    async create (req, res) {
+        const managerID = req.body.actualManagerID;
+
+        if (!(await recordExist(managerID, 'department_manager'))) {
+            return res.status(404).send('Department manager not exist');
+        }
+
+        const query = sql
+            .insert('department', 'name', 'address', 'contact_number', 'actual_manager')
+            .values(req.body.name, req.body.address, req.body.contactNumber, managerID)
+            .toParams({ placeholder: '?' });
+
+        const { err } = handleQuery(query);
+
+        if (err) {
+            console.log(err);
+            return res.status(500).send(err);
+        }
+
+        return res.status(200);
+    }
+
+    async changeData (req, res) {
+        const managerID = req.body.actualManagerID;
+
+        if (managerID && !(await recordExist(managerID, 'department_manager'))) {
+            return res.status(404).send('Manager not exist');
+        }
+
+        const valuesToChange = {};
+
+        if (req.body.name) valuesToChange.name = req.body.name;
+        if (req.body.address) valuesToChange.address = req.body.address;
+        if (req.body.contactNumber) valuesToChange.contact_number = req.body.contactNumber;
+        if (managerID) valuesToChange.actual_manager = managerID;
+
+        const query = sql.update('department').set(valuesToChange).toParams({ placeholder: '?' });
+
+        const { err } = handleQuery(query);
+
+        if (err) {
+            console.log(err);
+            return res.status(500).send(err);
+        }
+
+        res.status(200);
+    }
+}
+
+export const departmentController = new DepartmentController();
