@@ -7,8 +7,8 @@ export const departmentRouter = express.Router();
 
 departmentRouter.use(authenticate);
 
-departmentRouter('/create', validateRoles([role.ADMIN]), async (req, res) => await departmentController.create(req, res));
+departmentRouter.post('/create', validateRoles([role.ADMIN]), departmentController.create());
 departmentRouter.get('/get_one', validateRoles(), async (req, res) => await departmentController.getOne(req, res));
 departmentRouter.get('/get_many', validateRoles(), async (req, res) => await departmentController.getMany(req, res));
-departmentRouter.get('/get_books', validateRoles(), async (req, res) => await departmentController.getBooks(req, res));
-departmentRouter.put('/change_data', validateRoles([role.ADMIN, role.DEPARTMENT_MANAGER]), async (req, res) => await departmentController.changeData(req, res));
+departmentRouter.get('/get_books', validateRoles(), departmentController.getBooks());
+departmentRouter.put('/change_data', validateRoles([role.ADMIN, role.DEPARTMENT_MANAGER]), departmentController.changeData());
