@@ -14,7 +14,8 @@ export class DefaultUserController {
                 .select(`${this._tableName}.*, name, surname, phone_number, email, role, status, addition_time, login, password`)
                 .from('employee_account')
                 .join(this._tableName, { 'employee_account.id': 'employee_account_id' })
-                .where(sql.eq(`${this._tableName}.id`, id));
+                .where(sql.eq(`${this._tableName}.id`, id))
+                .toParams({ placeholder: '?' });
 
             const { values, err } = await handleQuery(query);
 
@@ -37,7 +38,8 @@ export class DefaultUserController {
                 .from('employee_account')
                 .join(this._tableName, { 'employee_account.id': 'employee_account_id' })
                 .where(sql.gte(`${this._tableName}.id`, fromID))
-                .limit(amount);
+                .limit(amount)
+                .toParams({ placeholder: '?' });
 
             const { values, err } = await handleQuery(query);
 
