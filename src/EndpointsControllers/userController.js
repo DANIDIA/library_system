@@ -8,7 +8,7 @@ class UserController {
         );
 
         if (users.length === 0) {
-            return res.status(400).send('Invalid login or password');
+            return res.status(404).send('Invalid login or password');
         }
 
         const userID = users[0].id;
@@ -18,8 +18,8 @@ class UserController {
             [userID]
         );
 
-        if (sessions[0].end === null) {
-            return res.status(500).json('There is an active session');
+        if (sessions.length > 0 && sessions[0].end === null) {
+            return res.status(400).send('There is an active session');
         }
 
         const [insertionData] = await connection.query(
