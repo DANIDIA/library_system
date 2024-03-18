@@ -51,4 +51,24 @@ export class DefaultUserController {
             res.status(200).json(values);
         };
     }
+
+    changeStatus (status) {
+        return async (req, res) => {
+            const id = req.body.id;
+
+            const query = sql
+                .update(this._tableName, { status })
+                .where(sql.eq('id', id))
+                .toParams({ placeholder: '?' });
+
+            const { err } = handleQuery(query);
+
+            if (err) {
+                console.log(err);
+                res.status(500).send(err);
+            }
+
+            res.status(200).send('ok');
+        };
+    }
 }
