@@ -55,7 +55,8 @@ export async function recordExist (recordID, tableName) {
 }
 
 export async function createUserAccount (name, surname, email, phoneNumber, role) {
-    // TODO: make login and password generator
+    // TODO: make login generator
+    // TODO: make password generator
     const query = sql
         .insert('employee_account', {
             name,
@@ -71,5 +72,5 @@ export async function createUserAccount (name, surname, email, phoneNumber, role
 
     const { values } = await handleQuery(query);
 
-    return values[0].insertId;
+    return values.insertId;
 }

@@ -41,7 +41,7 @@ class LibrarianController extends DefaultUserController {
                 return res.status(500).send(err);
             }
 
-            res.status(200).json(values[0].insertId);
+            res.status(200).json({ id: values.insertId });
         };
     }
 
