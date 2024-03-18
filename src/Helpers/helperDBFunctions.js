@@ -1,5 +1,6 @@
 import { connection } from './database.js';
-import { sessionStatus } from '../enums/index.js';
+import { accountStatus, sessionStatus } from '../enums/index.js';
+import sql from 'mysql-bricks';
 
 export async function handleQuery ({ text, values }) {
     let _err;
@@ -51,4 +52,24 @@ export async function recordExist (recordID, tableName) {
         [recordID]
     );
     return records.length > 0;
+}
+
+export async function createUserAccount (name, surname, email, phoneNumber, role) {
+    // TODO: make login and password generator
+    const query = sql
+        .insert('employee_account', {
+            name,
+            surname,
+            phone_number: phoneNumber,
+            role,
+            addition_time: sql('NOW()'),
+            login: name + surname,
+            password: 'qwerty',
+            status: accountStatus.ACTIVE
+        })
+        .toParams({ placeholder: '?' });
+
+    const { values } = await handleQuery(query);
+
+    return values[0].insertId;
 }
