@@ -48,6 +48,7 @@ class LibrarianController extends DefaultUserController {
     changeData () {
         return async (req, res) => {
             const departmentID = req.body.departmentID;
+            const id = req.body.id;
 
             if (departmentID && !(await recordExist(departmentID, 'department'))) {
                 return res.status(404).send('Department not exist');
@@ -79,7 +80,9 @@ class LibrarianController extends DefaultUserController {
 
             if (Object.keys(valuesToChangeUserAccount).length !== 0) {
                 const query = sql
-                    .update('employee_account', valuesToChangeUserAccount)
+                    .update(`employee_account JOIN ${this._tableName} ON ${this._tableName}.employee_account_id = employee_account.id`)
+                    .set(valuesToChangeUserAccount)
+                    .where(sql.eq('librarian.id', id))
                     .toParams({ placeholder: '?' });
 
                 const { err } = await handleQuery(query);
