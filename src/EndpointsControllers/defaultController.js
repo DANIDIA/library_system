@@ -17,18 +17,18 @@ export class DefaultController {
             const {
                 values,
                 err
-            } = handleQuery(query);
+            } = await handleQuery(query);
 
             if (err) {
                 console.log(err);
                 return res.status(500).send(err);
             }
 
-            if (values.length === 0) {
+            if (values[0].length === 0) {
                 return res.status(404);
             }
 
-            res.status(200).json(values[0]);
+            res.status(200).json(values[0][0]);
         };
     }
 
@@ -46,14 +46,14 @@ export class DefaultController {
             const {
                 values,
                 err
-            } = handleQuery(query);
+            } = await handleQuery(query);
 
             if (err) {
                 console.log(err);
                 return res.status(500);
             }
 
-            res.status(200).json(values);
+            res.status(200).json(values[0]);
         };
     }
 }

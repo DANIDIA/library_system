@@ -24,7 +24,7 @@ export class DefaultUserController {
                 return res.status(500).send(err);
             }
 
-            res.status(200).json(values[0]);
+            res.status(200).json(values[0][0]);
         };
     }
 
@@ -48,7 +48,7 @@ export class DefaultUserController {
                 return res.status(500).send(err);
             }
 
-            res.status(200).json(values);
+            res.status(200).json(values[0]);
         };
     }
 

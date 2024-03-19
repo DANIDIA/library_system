@@ -4,7 +4,7 @@ import sql from 'mysql-bricks';
 
 export async function handleQuery ({ text, values }) {
     let _err;
-    const [_values] = await (connection.query(text, values)
+    const _values = await (connection.query(text, values)
         .then(data => data)
         .catch(err => {
             _err = err;
@@ -72,5 +72,5 @@ export async function createUserAccount (name, surname, email, phoneNumber, role
 
     const { values } = await handleQuery(query);
 
-    return values.insertId;
+    return values[0].insertId;
 }

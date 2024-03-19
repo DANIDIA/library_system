@@ -20,14 +20,14 @@ export class DepartmentController extends DefaultController {
                 .values(req.body.name, req.body.address, req.body.contactNumber, managerID)
                 .toParams({ placeholder: '?' });
 
-            const { err } = handleQuery(query);
+            const { values, err } = await handleQuery(query);
 
             if (err) {
                 console.log(err);
                 return res.status(500).send(err);
             }
 
-            res.status(200).send('ok');
+            res.status(200).json(values[0].insertId);
         };
     }
 
@@ -51,14 +51,14 @@ export class DepartmentController extends DefaultController {
             const {
                 values,
                 err
-            } = handleQuery(query);
+            } = await handleQuery(query);
 
             if (err) {
                 console.log(err);
                 return res.status(500).send(err);
             }
 
-            res.status(200).json(values);
+            res.status(200).json(values[0]);
         };
     }
 
