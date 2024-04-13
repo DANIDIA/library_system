@@ -1,0 +1,3 @@
+### TODOS:
+
+- [ ] E-mail validation
