@@ -60,6 +60,27 @@ class BookController extends DefaultController {
         };
     }
 
+    givenAmount () {
+        return async (req, res) => {
+            const id = req.body.id;
+
+            const query = sql
+                .select(sql('COUNT(id) as givenAmount'))
+                .from('givenbooks')
+                .where(sql.eq('bookID', id))
+                .toParams({ placeholder: '?' });
+
+            const { err, values } = await handleQuery(query);
+
+            if (err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
+
+            res.status(200).json(values[0][0]);
+        };
+    }
+
     update () {
         return async (req, res) => {
             const id = req.body.id;
