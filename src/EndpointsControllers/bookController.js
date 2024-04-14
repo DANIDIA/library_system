@@ -1,26 +1,36 @@
-import { connection, getUserBySession, recordExist } from '../Helpers/index.js';
+import { connection, getUserBySession, handleQuery, recordExist } from '../Helpers/index.js';
 import { MAX_BOOKS_FOR_READER } from '../Helpers/constants.js';
 import { bookAction } from '../enums/index.js';
 import { DefaultController } from './defaultController.js';
+import sql from 'mysql-bricks';
 
 class BookController extends DefaultController {
     constructor () {
-        super('book');
+        super('books');
     }
 
-    async create (req, res) {
-        const user = await getUserBySession(req.body.sessionID);
+    add () {
+        return async (req, res) => {
+            if (!(await recordExist(req.body.departmentID, 'departments'))) {
+                return res.status(400).send('Department not exist');
+            }
 
-        if (!(await recordExist(req.body.departmentID, 'department'))) {
-            return res.status(400).send('Department not exist');
-        }
+            const bookAmount = req.body.bookAmount ? req.body.bookAmount : 0;
 
-        const [insertionData] = await connection.query(
-            'INSERT INTO book (title, author, current_department, current_reader, who_add_id, addition_time) VALUES (?, ?, ?, ?, ?, NOW())',
-            [req.body.title, req.body.author, req.body.currentDepartment, null, user.id]
-        );
+            const query = sql
+                .insert(this._tableName, 'title', 'author', 'amount', 'departmentID')
+                .values(req.body.title, req.body.author, bookAmount, req.body.departmentID)
+                .toParams({ placeholder: '?' });
 
-        res.status(200).json({ bookID: insertionData.insertId });
+            const { err } = await handleQuery(query);
+
+            if (err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
+
+            res.status(200).send('ok');
+        };
     }
 
     async changeData (req, res) {
