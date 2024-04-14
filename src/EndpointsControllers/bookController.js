@@ -37,12 +37,12 @@ class BookController extends DefaultController {
             const query = sql.select().from(this._tableName);
             let condition;
 
-            if (req.body.title) { condition = sql.eq({ title: req.body.title }); }
-            if (req.body.author) { condition = sql.and(condition, sql.eq({ author: req.body.author })); }
+            if (req.body.title) { condition = sql.eq('title', req.body.title); }
+            if (req.body.author) { condition = sql.and(condition, sql.eq('author', req.body.author)); }
             if (req.body.departmentID) {
-                condition = sql.and(condition, sql.eq({ departmentID: req.body.departmentID }));
+                condition = sql.and(condition, sql.eq('departmentID', req.body.departmentID));
             }
-            if (req.body.fromRecordID) { condition = sql.and(condition, sql.gte({ id: req.body.fromRecordID })); }
+            if (req.body.fromRecordID) { condition = sql.and(condition, sql.gte('id', req.body.fromRecordID)); }
 
             if (condition) { query.where(condition); }
 
