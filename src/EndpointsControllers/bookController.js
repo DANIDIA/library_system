@@ -161,63 +161,6 @@ class BookController extends DefaultController {
             res.status(200).send('ok');
         };
     }
-
-    async return (req, res) {
-        const bookID = req.body.bookID;
-        const departmentID = req.body.departmentID;
-        const user = await getUserBySession(req.body.sessionID);
-
-        if (!(await recordExist(bookID, 'book'))) {
-            return res.status(400).send('Book not exist');
-        }
-
-        if (!(await recordExist(departmentID, 'department'))) {
-            return res.status(400).send('Department not exist');
-        }
-
-        const [historyRecords] = await connection.query(
-            'SELECT * FROM book_receive_return_history WHERE book_id = ? ORDER BY time desc LIMIT 1',
-            [bookID]
-        );
-
-        if (historyRecords.length === 0) {
-            return res.status(400).send('Book was not received');
-        }
-
-        const lastRecord = historyRecords[0];
-
-        if (lastRecord.department !== departmentID) {
-            return res.status(400).send('Cant return a book in other department than department where the book was received');
-        }
-
-        if (lastRecord.action === bookAction.RETURN) {
-            return res.status(400).send('Book was returned');
-        }
-
-        const [readers] = await connection.query(
-            'SELECT * FROM reader WHERE id = ?',
-            [lastRecord.reader_id]
-        );
-
-        const reader = readers[0];
-
-        await connection.query(
-            'UPDATE reader SET books_amount = ? WHERE id = ?',
-            [(reader.books_amount * 1) - 1, reader.id]
-        );
-
-        await connection.query(
-            'UPDATE book SET current_reader = null WHERE id = ?',
-            [bookID]
-        );
-
-        await connection.query(
-            'INSERT INTO book_receive_return_history (book_id, reader_id, employee_id, time, action, department) VALUES (?, ?, ?, NOW(), ?, ?)',
-            [bookID, reader.id, user.id, bookAction.RETURN, departmentID]
-        );
-
-        res.status(200).send('Successfully returned');
-    }
 }
 
 export const bookController = new BookController();
