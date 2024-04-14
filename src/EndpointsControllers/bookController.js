@@ -56,7 +56,7 @@ class BookController extends DefaultController {
                 return res.status(500).send(err);
             }
 
-            res.status(200).json(values);
+            res.status(200).json(values[0]);
         };
     }
 
@@ -139,7 +139,7 @@ class BookController extends DefaultController {
                 return res.status(500).send(err);
             }
 
-            const book = values[0];
+            const book = values[0][0];
 
             if (book.amount - 1 < 0) {
                 return res.status(400).send('No books');
@@ -158,7 +158,7 @@ class BookController extends DefaultController {
                 return res.status(500).send(err);
             }
 
-            const reader = result.values[0];
+            const reader = result.values[0][0];
 
             if (reader.booksAmount >= MAX_BOOKS_FOR_READER) {
                 return res.status(400).send('Reader has maximum of books');
