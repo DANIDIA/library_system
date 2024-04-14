@@ -33,46 +33,35 @@ class BookController extends DefaultController {
         };
     }
 
-    async changeData (req, res) {
-        const bookID = req.body.bookID;
+    update () {
+        return async (req, res) => {
+            const id = req.body.id;
 
-        if (!(await recordExist(req.body.currentDepartmnet, 'department'))) {
-            return res.status(400).send('Department not exist');
-        }
+            if (req.amount < 0) {
+                return res.status(400).send('Incorrect amount');
+            }
 
-        if (!(await recordExist(req.body.curentReader, 'reader'))) {
-            return res.status(400).send('Reader not exist');
-        }
+            const valuesToChange = {};
 
-        if (req.body.title) {
-            await connection.query(
-                'UPDATE book SET title = ? WHERE id = ?',
-                [req.body.title, bookID]
-            );
-        }
+            if (req.title) valuesToChange.title = req.title;
+            if (req.author) valuesToChange.author = req.author;
+            if (req.amount) valuesToChange.amount = req.amount;
 
-        if (req.body.author) {
-            await connection.query(
-                'UPDATE book SET author = ? WHERE id = ?',
-                [req.body.author, bookID]
-            );
-        }
+            const query = sql
+                .update(this._tableName)
+                .set(valuesToChange)
+                .where(sql.eq('id', id))
+                .toParams({ placeholder: '?' });
 
-        if (req.body.currentDepartment) {
-            await connection.query(
-                'UPDATE book SET current_department = ? WHERE id = ?',
-                [req.body.currentDepartment, bookID]
-            );
-        }
+            const { err } = await handleQuery(query);
 
-        if (req.body.currentReader) {
-            await connection.query(
-                'UPDATE book SET current_reader = ? WHERE id = ?',
-                [req.body.currentReader, bookID]
-            );
-        }
+            if (err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
 
-        res.status(200).send('Successfully update');
+            res.status(200).send('ok');
+        };
     }
 
     async receive (req, res) {
