@@ -64,62 +64,102 @@ class BookController extends DefaultController {
         };
     }
 
-    async receive (req, res) {
-        const bookID = req.body.bookID;
-        const readerID = req.body.readerID;
-        const departmentID = req.body.departmentID;
-        const user = await getUserBySession(req.body.sessionID);
+    giveToReader () {
+        return async (req, res) => {
+            const id = req.body.bookID;
+            const readerID = req.body.readerID;
+            const user = await getUserBySession(req.body.sessionID);
 
-        if (!(await recordExist(bookID, 'book'))) {
-            return res.status(400).send('Book does not exist');
-        }
+            if (!(await recordExist(id, 'books'))) {
+                return res.status(400).send('Book does not exist');
+            }
 
-        if (!(await recordExist(readerID, 'reader'))) {
-            return res.status(400).send('Reader does not exist');
-        }
+            if (!(await recordExist(readerID, 'readers'))) {
+                return res.status(400).send('Reader does not exist');
+            }
 
-        if (!(await recordExist(departmentID, 'department'))) {
-            return res.status(400).send('Department does not exist');
-        }
+            const queryGetBook = sql
+                .select()
+                .from(this._tableName)
+                .where(sql.eq('id', id))
+                .toParams({ placeholder: '?' });
 
-        const [books] = await connection.query(
-            'SELECT * FROM book WHERE id = ?',
-            [bookID]
-        );
+            const { err, values } = await handleQuery(queryGetBook);
 
-        const receivedBook = books[0];
+            if (err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
 
-        if (receivedBook.current_reader != null) {
-            return res.status(400).send('Book was received');
-        }
+            const book = values[0];
 
-        const [readers] = await connection.query(
-            'SELECT * FROM reader WHERE id = ?',
-            [readerID]
-        );
+            if (book.amount - 1 < 0) {
+                return res.status(400).send('No books');
+            }
 
-        const bookReceiver = readers[0];
+            const queryGetReader = sql
+                .select()
+                .from('readers')
+                .where(sql.eq('id', readerID))
+                .toParams({ placeholder: '?' });
 
-        if (bookReceiver.books_amount >= MAX_BOOKS_FOR_READER) {
-            return res.status(400).json('Reader has max amount of books');
-        }
+            let result = await handleQuery(queryGetReader);
 
-        await connection.query(
-            'UPDATE book SET current_reader = ? WHERE id = ?',
-            [bookReceiver.id, bookID]
-        );
+            if (result.err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
 
-        await connection.query(
-            'UPDATE reader SET books_amount = ? WHERE id = ?',
-            [(bookReceiver.books_amount * 1) + 1, bookReceiver.id]
-        );
+            const reader = result.values[0];
 
-        await connection.query(
-            'INSERT INTO book_receive_return_history (book_id, reader_id, employee_id, time, action, department) values (?, ?, ?, NOW(), ?, ?)',
-            [bookID, bookReceiver.id, user.id, bookAction.RECEIVE, departmentID]
-        );
+            if (reader.booksAmount >= MAX_BOOKS_FOR_READER) {
+                return res.status(400).send('Reader has maximum of books');
+            }
 
-        res.status(200).send('successfully received');
+            const queryChangeBookAmountInDepartment = sql
+                .update(this._tableName)
+                .set({ amount: book.amount - 1 })
+                .toParams({ placeholder: '?' });
+
+            result = await handleQuery(queryChangeBookAmountInDepartment);
+
+            if (result.err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
+
+            const queryChangeBookAmountThatHasReader = sql
+                .update('readers')
+                .set({ booksAmount: reader.booksAmount + 1 })
+                .toParams({ placeholder: '?' });
+
+            result = await handleQuery(queryChangeBookAmountThatHasReader);
+
+            if (result.err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
+
+            const queryInsertToGivenBooks = sql
+                .insert('givenbooks')
+                .values({
+                    bookID: id,
+                    readerID,
+                    employeeID: user.id,
+                    departmentID: book.departmentID,
+                    dateAndTime: sql('NOV()')
+                })
+                .toParams({ placeholder: '?' });
+
+            result = await handleQuery(queryInsertToGivenBooks);
+
+            if (result.err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
+
+            res.status(200).send('ok');
+        };
     }
 
     async return (req, res) {
