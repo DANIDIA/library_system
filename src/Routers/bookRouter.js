@@ -6,10 +6,9 @@ export const bookRouter = express.Router();
 
 bookRouter.use(authenticate);
 
-bookRouter.get('/get_one', validateRoles(), bookController.getOne());
-bookRouter.get('/get_many', validateRoles(), bookController.getMany());
-bookRouter.post('/add', validateRoles(), bookController.create);
-bookRouter.post('/receive', validateRoles(), bookController.receive);
-bookRouter.post('/return', validateRoles(), bookController.return);
-bookRouter.put('/change_data', validateRoles(), bookController.changeData);
-bookRouter.delete('/delete');
+bookRouter.post('/add', validateRoles());
+bookRouter.get('/get', validateRoles());
+bookRouter.post('/give_to_reader', validateRoles());
+bookRouter.post('/given_amount', validateRoles());
+bookRouter.put('/update', validateRoles());
+bookRouter.delete('/delete', validateRoles());
