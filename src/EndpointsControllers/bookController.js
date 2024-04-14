@@ -209,6 +209,43 @@ class BookController extends DefaultController {
             res.status(200).send('ok');
         };
     }
+
+    remove () {
+        return async (req, res) => {
+            const queryGivenBooks = sql
+                .select(sql('COUNT(id) as givenBooks'))
+                .from('givenbooks')
+                .where(sql.eq('bookID', req.body.id))
+                .toParams({ placeholder: '?' });
+
+            const { err, values } = await handleQuery(queryGivenBooks);
+
+            if (err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
+
+            const givenBooks = values[0][0].givenBooks;
+
+            if (givenBooks > 0) {
+                return res.status(400).send('Not all books returned');
+            }
+
+            const queryRemoveBook = sql
+                .delete()
+                .from(this._tableName)
+                .where(sql.eq('id', req.body.id));
+
+            const result = await handleQuery(queryRemoveBook);
+
+            if (result.err) {
+                console.log(result.err);
+                return res.status(500).send(result.err);
+            }
+
+            res.status(200).send('ok');
+        };
+    }
 }
 
 export const bookController = new BookController();
