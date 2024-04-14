@@ -195,7 +195,7 @@ class BookController extends DefaultController {
                     readerID,
                     employeeID: user.id,
                     departmentID: book.departmentID,
-                    dateAndTime: sql('NOV()')
+                    dateAndTime: sql('NOW()')
                 })
                 .toParams({ placeholder: '?' });
 
