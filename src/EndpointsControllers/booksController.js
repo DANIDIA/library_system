@@ -3,7 +3,7 @@ import { MAX_BOOKS_FOR_READER } from '../Helpers/constants.js';
 import { DefaultController } from './defaultController.js';
 import sql from 'mysql-bricks';
 
-class BookController extends DefaultController {
+class BooksController extends DefaultController {
     constructor () {
         const fieldsNeededToAdd = ['title', 'author', 'departmentID', 'amount'];
         const updatableFields = ['title', 'author', 'amount'];
@@ -177,4 +177,4 @@ class BookController extends DefaultController {
     }
 }
 
-export const bookController = new BookController();
+export const booksController = new BooksController();
