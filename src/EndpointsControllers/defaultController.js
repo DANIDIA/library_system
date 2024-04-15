@@ -2,9 +2,10 @@ import { handleQuery } from '../Helpers/index.js';
 import sql from 'mysql-bricks';
 
 export class DefaultController {
-    constructor (tableName, fieldsNeededToAdd) {
+    constructor (tableName, fieldsNeededToAdd, updatableFields) {
         this._tableName = tableName;
         this._fieldsNeededToAdd = fieldsNeededToAdd;
+        this._updatableFields = updatableFields;
     }
 
     add () {
@@ -20,6 +21,31 @@ export class DefaultController {
             const query = sql
                 .insert(this._tableName, this._fieldsNeededToAdd)
                 .values(values)
+                .toParams({ placeholder: '?' });
+
+            const { err } = await handleQuery(query);
+
+            if (err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
+
+            res.status(200).send('ok');
+        };
+    }
+
+    update () {
+        return async (req, res) => {
+            const valuesToChange = {};
+
+            for (const field in this._updatableFields) {
+                if (Object.hasOwn(req.body, field)) { valuesToChange[field] = req.body[field]; }
+            }
+
+            const query = sql
+                .update(this._tableName)
+                .set(valuesToChange)
+                .where(sql.eq('id', id))
                 .toParams({ placeholder: '?' });
 
             const { err } = await handleQuery(query);

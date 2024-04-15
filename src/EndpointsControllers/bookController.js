@@ -6,8 +6,9 @@ import sql from 'mysql-bricks';
 class BookController extends DefaultController {
     constructor () {
         const fieldsNeededToAdd = ['title', 'author', 'departmentID', 'amount'];
+        const updatableFields = ['title', 'author', 'amount'];
 
-        super('books', fieldsNeededToAdd);
+        super('books', fieldsNeededToAdd, updatableFields);
     }
 
     add () {
@@ -71,32 +72,11 @@ class BookController extends DefaultController {
 
     update () {
         return async (req, res) => {
-            const id = req.body.id;
-
             if (req.amount < 0) {
                 return res.status(400).send('Incorrect amount');
             }
 
-            const valuesToChange = {};
-
-            if (req.title) valuesToChange.title = req.title;
-            if (req.author) valuesToChange.author = req.author;
-            if (req.amount) valuesToChange.amount = req.amount;
-
-            const query = sql
-                .update(this._tableName)
-                .set(valuesToChange)
-                .where(sql.eq('id', id))
-                .toParams({ placeholder: '?' });
-
-            const { err } = await handleQuery(query);
-
-            if (err) {
-                console.log(err);
-                return res.status(500).send(err);
-            }
-
-            res.status(200).send('ok');
+            await super.update()(req, res);
         };
     }
 
