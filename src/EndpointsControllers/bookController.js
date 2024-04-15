@@ -5,7 +5,9 @@ import sql from 'mysql-bricks';
 
 class BookController extends DefaultController {
     constructor () {
-        super('books');
+        const fieldsNeededToAdd = ['title', 'author', 'departmentID', 'amount'];
+
+        super('books', fieldsNeededToAdd);
     }
 
     add () {
@@ -14,21 +16,7 @@ class BookController extends DefaultController {
                 return res.status(400).send('Department not exist');
             }
 
-            const bookAmount = req.body.bookAmount ? req.body.bookAmount : 0;
-
-            const query = sql
-                .insert(this._tableName, 'title', 'author', 'amount', 'departmentID')
-                .values(req.body.title, req.body.author, bookAmount, req.body.departmentID)
-                .toParams({ placeholder: '?' });
-
-            const { err } = await handleQuery(query);
-
-            if (err) {
-                console.log(err);
-                return res.status(500).send(err);
-            }
-
-            res.status(200).send('ok');
+            await super.add()(req, res);
         };
     }
 

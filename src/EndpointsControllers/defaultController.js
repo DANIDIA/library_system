@@ -2,8 +2,35 @@ import { handleQuery } from '../Helpers/index.js';
 import sql from 'mysql-bricks';
 
 export class DefaultController {
-    constructor (tableName) {
+    constructor (tableName, fieldsNeededToAdd) {
         this._tableName = tableName;
+        this._fieldsNeededToAdd = fieldsNeededToAdd;
+    }
+
+    add () {
+        return async (req, res) => {
+            const values = [];
+
+            for (const field in this._fieldsNeededToAdd) {
+                if (!Object.keys(req.body).includes(field)) { return res.status(400).send(`No "${field}" field`); }
+
+                values.push(req.body[field]);
+            }
+
+            const query = sql
+                .insert(this._tableName, this._fieldsNeededToAdd)
+                .values(values)
+                .toParams({ placeholder: '?' });
+
+            const { err } = await handleQuery(query);
+
+            if (err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
+
+            res.status(200).send('ok');
+        };
     }
 
     remove () {
