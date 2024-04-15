@@ -2,10 +2,11 @@ import { handleQuery } from '../Helpers/index.js';
 import sql from 'mysql-bricks';
 
 export class DefaultController {
-    constructor (tableName, fieldsNeededToAdd, updatableFields) {
+    constructor (tableName, fieldsNeededToAdd, updatableFields, searchableFields) {
         this._tableName = tableName;
         this._fieldsNeededToAdd = fieldsNeededToAdd;
         this._updatableFields = updatableFields;
+        this._serchableFields = searchableFields;
     }
 
     add () {
@@ -31,6 +32,43 @@ export class DefaultController {
             }
 
             res.status(200).send('ok');
+        };
+    }
+
+    get () {
+        return async (req, res) => {
+            let query = sql.select().from(this._tableName);
+            let condition;
+
+            for (const field in this._serchableFields) {
+                if (Object.hasOwn(req.body, field)) {
+                    const fieldEq = sql.eq(field, req.body[field]);
+
+                    condition = condition ? sql.and(condition, fieldEq) : fieldEq;
+                }
+            }
+
+            if (Object.hasOwn(req.body, 'fromRecordID')) {
+                const fromRecordIdGte = sql.gte('fromRecordID', req.body.fromRecordID);
+
+                condition = condition ? sql.and(condition, fromRecordIdGte) : fromRecordIdGte;
+            }
+
+            query = condition ? query.where(condition) : query;
+
+            if (Object.hasOwn(req.body, 'recordAmount')) {
+                query = query.limit(req.body.recordAmount);
+            }
+
+            const params = query.toParams({ placeholder: '?' });
+            const { err, values } = await handleQuery(params);
+
+            if (err) {
+                console.log(err);
+                return res.status(500).send(err);
+            }
+
+            res.status(200).json(values[0]);
         };
     }
 

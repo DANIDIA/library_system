@@ -7,8 +7,9 @@ class BookController extends DefaultController {
     constructor () {
         const fieldsNeededToAdd = ['title', 'author', 'departmentID', 'amount'];
         const updatableFields = ['title', 'author', 'amount'];
+        const searchableFields = ['title', 'author', 'departmentID'];
 
-        super('books', fieldsNeededToAdd, updatableFields);
+        super('books', fieldsNeededToAdd, updatableFields, searchableFields);
     }
 
     add () {
@@ -18,34 +19,6 @@ class BookController extends DefaultController {
             }
 
             await super.add()(req, res);
-        };
-    }
-
-    get () {
-        return async (req, res) => {
-            const query = sql.select().from(this._tableName);
-            let condition;
-
-            if (req.body.title) { condition = sql.eq('title', req.body.title); }
-            if (req.body.author) { condition = sql.and(condition, sql.eq('author', req.body.author)); }
-            if (req.body.departmentID) {
-                condition = sql.and(condition, sql.eq('departmentID', req.body.departmentID));
-            }
-            if (req.body.fromRecordID) { condition = sql.and(condition, sql.gte('id', req.body.fromRecordID)); }
-
-            if (condition) { query.where(condition); }
-
-            if (req.body.recordAmount) { query.limit(req.body.recordAmount); }
-
-            const params = query.toParams({ placeholder: '?' });
-            const { err, values } = await handleQuery(params);
-
-            if (err) {
-                console.log(err);
-                return res.status(500).send(err);
-            }
-
-            res.status(200).json(values[0]);
         };
     }
 
