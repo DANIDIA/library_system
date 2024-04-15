@@ -36,6 +36,7 @@ export class DefaultController {
 
     update () {
         return async (req, res) => {
+            const id = req.body.id;
             const valuesToChange = {};
 
             for (const field in this._updatableFields) {
