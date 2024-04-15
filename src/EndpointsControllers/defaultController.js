@@ -14,7 +14,7 @@ export class DefaultController {
             const values = [];
 
             for (const field in this._fieldsNeededToAdd) {
-                if (!Object.keys(req.body).includes(field)) { return res.status(400).send(`No "${field}" field`); }
+                if (!Object.hasOwn(req.body, field)) { return res.status(400).send(`No "${field}" field`); }
 
                 values.push(req.body[field]);
             }
