@@ -231,19 +231,7 @@ class BookController extends DefaultController {
                 return res.status(400).send('Not all books returned');
             }
 
-            const queryRemoveBook = sql
-                .delete()
-                .from(this._tableName)
-                .where(sql.eq('id', req.body.id));
-
-            const result = await handleQuery(queryRemoveBook);
-
-            if (result.err) {
-                console.log(result.err);
-                return res.status(500).send(result.err);
-            }
-
-            res.status(200).send('ok');
+            await super.remove()(req, res);
         };
     }
 }
