@@ -2,9 +2,9 @@ import { connection, getUserBySession } from '../Helpers/index.js';
 import { accountStatus } from '../enums/index.js';
 import { DefaultController } from './defaultController.js';
 
-class ReaderController extends DefaultController {
+class ReadersController extends DefaultController {
     constructor () {
-        super('reader');
+        super('readers');
     }
 
     async create (req, res) {
@@ -68,4 +68,4 @@ class ReaderController extends DefaultController {
     }
 }
 
-export const readerController = new ReaderController();
+export const readersController = new ReadersController();

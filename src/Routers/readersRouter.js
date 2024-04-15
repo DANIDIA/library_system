@@ -1,5 +1,5 @@
 import express from 'express';
-import { readerController } from '../EndpointsControllers/index.js';
+import { readersController } from '../EndpointsControllers/index.js';
 import { authenticate, validateRoles } from '../Helpers/index.js';
 
 export const readersRouter = express.Router();
