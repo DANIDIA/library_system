@@ -2,6 +2,7 @@ import { getUserBySession, handleQuery, recordExist } from '../Helpers/index.js'
 import { MAX_BOOKS_FOR_READER } from '../Helpers/constants.js';
 import { DefaultController } from './defaultController.js';
 import sql from 'mysql-bricks';
+import { dbTablesNames } from '../enums/index.js';
 
 class BooksController extends DefaultController {
     constructor () {
@@ -9,12 +10,12 @@ class BooksController extends DefaultController {
         const updatableFields = ['title', 'author', 'amount'];
         const searchableFields = ['title', 'author', 'departmentID'];
 
-        super('books', fieldsNeededToAdd, updatableFields, searchableFields);
+        super(dbTablesNames.BOOKS, fieldsNeededToAdd, updatableFields, searchableFields);
     }
 
     add () {
         return async (req, res) => {
-            if (!(await recordExist(req.body.departmentID, 'departments'))) {
+            if (!(await recordExist(req.body.departmentID, dbTablesNames.DEPARTMENTS))) {
                 return res.status(400).send('Department not exist');
             }
 
@@ -59,11 +60,11 @@ class BooksController extends DefaultController {
             const readerID = req.body.readerID;
             const user = await getUserBySession(req.body.sessionID);
 
-            if (!(await recordExist(id, 'books'))) {
+            if (!(await recordExist(id, this._tableName))) {
                 return res.status(400).send('Book does not exist');
             }
 
-            if (!(await recordExist(readerID, 'readers'))) {
+            if (!(await recordExist(readerID, dbTablesNames.READERS))) {
                 return res.status(400).send('Reader does not exist');
             }
 
@@ -88,7 +89,7 @@ class BooksController extends DefaultController {
 
             const queryGetReader = sql
                 .select()
-                .from('readers')
+                .from(dbTablesNames.READERS)
                 .where(sql.eq('id', readerID))
                 .toParams({ placeholder: '?' });
 
@@ -118,7 +119,7 @@ class BooksController extends DefaultController {
             }
 
             const queryChangeBookAmountThatHasReader = sql
-                .update('readers')
+                .update(dbTablesNames.READERS)
                 .set({ booksAmount: reader.booksAmount + 1 })
                 .toParams({ placeholder: '?' });
 
@@ -130,7 +131,7 @@ class BooksController extends DefaultController {
             }
 
             const queryInsertToGivenBooks = sql
-                .insert('givenbooks')
+                .insert(dbTablesNames.GIVEN_BOOKS)
                 .values({
                     bookID: id,
                     readerID,
@@ -155,7 +156,7 @@ class BooksController extends DefaultController {
         return async (req, res) => {
             const queryGivenBooks = sql
                 .select(sql('COUNT(id) as givenBooks'))
-                .from('givenbooks')
+                .from(dbTablesNames.GIVEN_BOOKS)
                 .where(sql.eq('bookID', req.body.id))
                 .toParams({ placeholder: '?' });
 
