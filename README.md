@@ -1,7 +1,7 @@
 ### TODOS:  
 
 #### Big changes
-- [ ] Make `handleServerErrors` middleware
+- [ ] Make `handleEndpointsErrors` middleware
 - [ ] Rewrite CRUD operations for all endpoints
 - [ ] Rewrite a got/return books system
 - [ ] Rewrite authentication
@@ -11,7 +11,7 @@
 #### Changes
 - [ ] Rewrite massages that returns server and change status codes
 - [ ] Improve naming
-- [ ] Create enum with DB tables names
+- [x] Create enum with DB tables names
 
 #### Additionally
 - [ ] E-mail validation
