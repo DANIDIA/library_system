@@ -1,4 +1,4 @@
-export const dbTablesNames = {
+export const dbTablesNames = Object.freeze({
     BOOKS: 'books',
     READERS: 'readers',
     GIVEN_BOOKS: 'givenbooks',
@@ -6,4 +6,4 @@ export const dbTablesNames = {
     DEPARTMENTS: 'departments',
     ACTIVE_SESSIONS: 'activesessions',
     ROLES: 'roles'
-};
+});
