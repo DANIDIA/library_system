@@ -38,6 +38,16 @@ class ReadersController extends DefaultController {
         };
     }
 
+    get () {
+        return async (req, res, next) => {
+            try {
+                await super.get(req, res);
+            } catch (e) {
+                next(e);
+            }
+        };
+    }
+
     update () {
         return async (req, res, next) => {
             try {
