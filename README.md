@@ -1,9 +1,9 @@
 ### TODOS:  
 
 #### Big changes
-- [ ] Make `handleEndpointsErrors` middleware
+- [x] Make `handleEndpointsErrors` middleware
 - [ ] Rewrite CRUD operations for all endpoints
-- [ ] Rewrite a got/return books system
+- [x] Rewrite a get/return books system
 - [ ] Rewrite authentication
 - [ ] Rewrite roles system
 - [ ] Make blocking system for employees and readers
