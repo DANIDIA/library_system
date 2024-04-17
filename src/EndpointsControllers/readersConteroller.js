@@ -1,21 +1,39 @@
 import { connection, getUserBySession } from '../Helpers/index.js';
-import { accountStatus } from '../enums/index.js';
+import { accountStatus, dbTablesNames } from '../enums/index.js';
 import { DefaultController } from './defaultController.js';
+import sql from 'mysql-bricks';
 
 class ReadersController extends DefaultController {
     constructor () {
-        super('readers');
+        super(dbTablesNames.READERS);
     }
 
-    async create (req, res) {
-        const user = await getUserBySession(req.body.sessionID);
+    add () {
+        return async (req, res, next) => {
+            try {
+                const user = await getUserBySession(req.body.sessionID);
 
-        const [insertionData] = await connection.query(
-            'INSERT INTO reader (name, surname, phone_number, who_add_id, addition_time, books_amount, status) VALUES (?, ?, ?, ?, NOW(), 0, ?)',
-            [req.body.name, req.body.surname, req.body.phoneNumber, user.id, accountStatus.ACTIVE]
-        );
+                const fields = { name: true, surname: true, phoneNumber: true, email: false };
+                const values = this._getValuesFromRequestBody(req.body, fields);
 
-        res.status(200).json({ readerID: insertionData.insertId });
+                if (typeof values === 'string') {
+                    return res.status(400).send(`Field with name '${values}' is necessary`);
+                }
+
+                const query = sql
+                    .insert(this._tableName,
+                        [...Object.keys(fields), 'booksAmount', 'whoAddID', 'isActive', 'additionDate']
+                    )
+                    .values([...values, 0, user.id, accountStatus.ACTIVE, 'NOW()'])
+                    .toParams({ placeholder: '?' });
+
+                await connection.query(query.text, query.values);
+
+                res.status(200).json('ok');
+            } catch (e) {
+                next(e);
+            }
+        };
     }
 
     async changeData (req, res) {
