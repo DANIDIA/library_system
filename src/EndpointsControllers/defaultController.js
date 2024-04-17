@@ -96,4 +96,23 @@ export class DefaultController {
             res.status(200).send('ok');
         };
     }
+
+    /**
+     * @param {Object} body
+     *  @param {Object} fieldsNames Names of values with specifying is the value necessary (true) or
+     *  unnecessary (false)
+     *  @return {(string|Array)} Return name of necessary field if it is absent in body and return Array of values if
+     *  all of necessary values was in body
+     */
+    _getValuesFromRequestBody (body, fieldsNames) {
+        const result = [];
+
+        for (const name in Object.keys(fieldsNames)) {
+            if (fieldsNames[name] || !Object.hasOwn(body, name)) { return name; }
+
+            result.push(body[name]);
+        }
+
+        return result;
+    }
 }
