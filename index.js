@@ -1,5 +1,5 @@
 import express from 'express';
-import { booksRouter, readersRouter, userRouter, departmentRouter, librarianRouter, handleEndpointsErrors } from './src/index.js';
+import { booksRouter, readersRouter, userRouter, departmentRouter, handleEndpointsErrors } from './src/index.js';
 
 const PORT = 5000;
 
@@ -9,7 +9,6 @@ app.use('/user', userRouter);
 app.use('/readers', readersRouter);
 app.use('/books', booksRouter);
 app.use('/department', departmentRouter);
-app.use('/librarian', librarianRouter);
 
 app.use(handleEndpointsErrors);
 
