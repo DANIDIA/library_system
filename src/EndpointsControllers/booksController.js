@@ -6,11 +6,10 @@ import { dbTablesNames } from '../enums/index.js';
 
 class BooksController extends DefaultController {
     constructor () {
-        const fieldsNeededToAdd = ['title', 'author', 'departmentID', 'amount'];
         const updatableFields = ['title', 'author', 'amount'];
         const searchableFields = ['title', 'author', 'departmentID'];
 
-        super(dbTablesNames.BOOKS, fieldsNeededToAdd, updatableFields, searchableFields);
+        super(dbTablesNames.BOOKS, updatableFields, searchableFields);
     }
 
     add () {
@@ -20,7 +19,21 @@ class BooksController extends DefaultController {
                     return res.status(400).send('Department not exist');
                 }
 
-                await super.add()(req, res);
+                const fields = { title: true, author: true, departmentID: true, amount: true };
+                const values = this._getValuesFromRequestBody(req.body, fields);
+
+                if (typeof values === 'string') {
+                    return res.status(400).send(`Field ${values} does not exist`);
+                }
+
+                const query = sql
+                    .insert(this._tableName, Object.keys(fields))
+                    .values(values)
+                    .toParams({ placeholder: '?' });
+
+                await connection.query(query.text, query.values);
+
+                res.status(200).send('ok');
             } catch (e) {
                 next(e);
             }
