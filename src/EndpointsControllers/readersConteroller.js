@@ -5,7 +5,9 @@ import sql from 'mysql-bricks';
 
 class ReadersController extends DefaultController {
     constructor () {
-        super(dbTablesNames.READERS);
+        const updatableFields = ['name', 'surname', 'phoneNumber', 'email'];
+        const searchableFields = ['name', 'surname', 'phoneNumber', 'email'];
+        super(dbTablesNames.READERS, updatableFields, searchableFields);
     }
 
     add () {
