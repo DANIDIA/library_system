@@ -4,30 +4,8 @@ import sql from 'mysql-bricks';
 export class DefaultController {
     constructor (tableName, fieldsNeededToAdd, updatableFields, searchableFields) {
         this._tableName = tableName;
-        this._fieldsNeededToAdd = fieldsNeededToAdd;
         this._updatableFields = updatableFields;
         this._serchableFields = searchableFields;
-    }
-
-    add () {
-        return async (req, res) => {
-            const values = [];
-
-            for (const field in this._fieldsNeededToAdd) {
-                if (!Object.hasOwn(req.body, field)) { return res.status(400).send(`No "${field}" field`); }
-
-                values.push(req.body[field]);
-            }
-
-            const query = sql
-                .insert(this._tableName, this._fieldsNeededToAdd)
-                .values(values)
-                .toParams({ placeholder: '?' });
-
-            await connection.query(query.text, query.values);
-
-            res.status(200).send('ok');
-        };
     }
 
     get () {
