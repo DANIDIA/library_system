@@ -120,7 +120,9 @@ class ReadersController extends DefaultController {
                 }
 
                 const query = sql
-                    .update(this._tableName, { isActive: +res.body.isActive })
+                    .update(this._tableName,
+                        { isActive: req.body.isActive ? accountStatus.ACTIVE : accountStatus.BLOCKED }
+                    )
                     .where(sql.eq('id', id))
                     .toParams({ placeholder: '?' });
 
