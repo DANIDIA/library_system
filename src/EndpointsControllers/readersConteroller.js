@@ -38,31 +38,14 @@ class ReadersController extends DefaultController {
         };
     }
 
-    async changeData (req, res) {
-        const readerID = req.body.readerID;
-
-        if (req.body.name) {
-            await connection.query(
-                'UPDATE reader SET name = ? WHERE id = ?',
-                [req.body.name, readerID]
-            );
-        }
-
-        if (req.body.surname) {
-            await connection.query(
-                'UPDATE reader SET surname = ? WHERE id = ?',
-                [req.body.surname, readerID]
-            );
-        }
-
-        if (req.body.phoneNumber) {
-            await connection.query(
-                'UPDATE reader SET phone_number = ? WHERE id = ?',
-                [req.body.phoneNumber, readerID]
-            );
-        }
-
-        res.status(200).send('Successfully update');
+    update () {
+        return async (req, res, next) => {
+            try {
+                this.update(req, res);
+            } catch (e) {
+                next(e);
+            }
+        };
     }
 
     async block (req, res) {
