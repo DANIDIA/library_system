@@ -1,4 +1,4 @@
-import { handleQuery } from '../Helpers/index.js';
+import { connection } from '../Helpers/index.js';
 import sql from 'mysql-bricks';
 
 export class DefaultController {
@@ -24,12 +24,7 @@ export class DefaultController {
                 .values(values)
                 .toParams({ placeholder: '?' });
 
-            const { err } = await handleQuery(query);
-
-            if (err) {
-                console.log(err);
-                return res.status(500).send(err);
-            }
+            await connection.query(query.text, query.values);
 
             res.status(200).send('ok');
         };
@@ -61,14 +56,9 @@ export class DefaultController {
             }
 
             const params = query.toParams({ placeholder: '?' });
-            const { err, values } = await handleQuery(params);
+            const values = (await connection.query(params.text, params.values))[0];
 
-            if (err) {
-                console.log(err);
-                return res.status(500).send(err);
-            }
-
-            res.status(200).json(values[0]);
+            res.status(200).json(values);
         };
     }
 
@@ -87,12 +77,7 @@ export class DefaultController {
                 .where(sql.eq('id', id))
                 .toParams({ placeholder: '?' });
 
-            const { err } = await handleQuery(query);
-
-            if (err) {
-                console.log(err);
-                return res.status(500).send(err);
-            }
+            await connection.query(query.text, query.values);
 
             res.status(200).send('ok');
         };
@@ -100,17 +85,13 @@ export class DefaultController {
 
     remove () {
         return async (req, res) => {
-            const queryRemoveBook = sql
+            const query = sql
                 .delete()
                 .from(this._tableName)
-                .where(sql.eq('id', req.body.id));
+                .where(sql.eq('id', req.body.id))
+                .toParams({ placeholder: '?' });
 
-            const result = await handleQuery(queryRemoveBook);
-
-            if (result.err) {
-                console.log(result.err);
-                return res.status(500).send(result.err);
-            }
+            await connection.query(query.text, query.values);
 
             res.status(200).send('ok');
         };
