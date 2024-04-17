@@ -16,14 +16,14 @@ class BooksController extends DefaultController {
         return async (req, res, next) => {
             try {
                 if (!(await recordExist(req.body.departmentID, dbTablesNames.DEPARTMENTS))) {
-                    return res.status(400).send('Department not exist');
+                    return res.status(400).send(`Department with ID ${req.body.departmentID} doesn't exist`);
                 }
 
                 const fields = { title: true, author: true, departmentID: true, amount: true };
                 const values = this._getValuesFromRequestBody(req.body, fields);
 
                 if (typeof values === 'string') {
-                    return res.status(400).send(`Field ${values} does not exist`);
+                    return res.status(400).send(`Field with name '${values}' is necessary`);
                 }
 
                 const query = sql
@@ -74,7 +74,7 @@ class BooksController extends DefaultController {
         return async (req, res, next) => {
             try {
                 if (req.amount < 0) {
-                    return res.status(400).send('Incorrect amount');
+                    return res.status(400).send('Amount must be great than 0');
                 }
 
                 await super.update()(req, res);
@@ -92,11 +92,11 @@ class BooksController extends DefaultController {
                 const user = await getUserBySession(req.body.sessionID);
 
                 if (!(await recordExist(id, this._tableName))) {
-                    return res.status(400).send('Book does not exist');
+                    return res.status(400).send(`Book with ID ${id} doesn't exist`);
                 }
 
                 if (!(await recordExist(readerID, dbTablesNames.READERS))) {
-                    return res.status(400).send('Reader does not exist');
+                    return res.status(400).send(`Reader with ID ${readerID} doesn't exist`);
                 }
 
                 const queryGetBook = sql
@@ -108,7 +108,7 @@ class BooksController extends DefaultController {
                 const book = (await connection.query(queryGetBook.text, queryGetBook.values))[0][0];
 
                 if (book.amount - 1 < 0) {
-                    return res.status(400).send('No books');
+                    return res.status(400).send(`Amount of books with title '${book.title} is 0'`);
                 }
 
                 const queryGetReader = sql
@@ -169,7 +169,7 @@ class BooksController extends DefaultController {
                 const givenBooks = (await connection.query(queryGivenBooks.text, queryGivenBooks.values))[0][0];
 
                 if (givenBooks > 0) {
-                    return res.status(400).send('Not all books returned');
+                    return res.status(400).send('Not all of the books was returned');
                 }
 
                 await super.remove()(req, res);
