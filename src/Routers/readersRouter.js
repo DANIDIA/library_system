@@ -6,10 +6,9 @@ export const readersRouter = express.Router();
 
 readersRouter.use(authenticate);
 
-readersRouter.post('/add', validateRoles());
+readersRouter.post('/add', validateRoles(), readersController.add());
 readersRouter.post('/return_book', validateRoles());
-readersRouter.get('/get', validateRoles());
-readersRouter.put('/update', validateRoles());
-readersRouter.put('/block', validateRoles());
-readersRouter.put('/unblock', validateRoles());
-readersRouter.delete('/delete', validateRoles());
+readersRouter.get('/get', validateRoles(), readersController.get());
+readersRouter.put('/update', validateRoles(), readersController.update());
+readersRouter.put('/changeStatus', validateRoles(), readersController.changeStatus());
+readersRouter.delete('/remove', validateRoles(), readersController.remove());
