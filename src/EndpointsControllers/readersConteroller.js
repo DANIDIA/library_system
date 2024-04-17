@@ -48,26 +48,31 @@ class ReadersController extends DefaultController {
         };
     }
 
-    async block (req, res) {
-        const readerID = req.body.readerID;
+    changeStatus () {
+        return async (req, res, next) => {
+            try {
+                const id = req.body.id;
 
-        await connection.query(
-            'UPDATE reader SET status = ? WHERE id = ?',
-            [accountStatus.BLOCKED, readerID]
-        );
+                if (!Object.hasOwn(req.body, 'isActive')) {
+                    res.status(400).send('No isActive field');
+                }
 
-        res.status(200).send('Reader blocked');
-    }
+                if (typeof req.body.isActive !== 'boolean') {
+                    res.status(400).send('valid value for isActive field');
+                }
 
-    async unblock (req, res) {
-        const readerID = req.body.readerID;
+                const query = sql
+                    .update(this._tableName, { isActive: +res.body.isActive })
+                    .where(sql.eq('id', id))
+                    .toParams({ placeholder: '?' });
 
-        await connection.query(
-            'UPDATE reader SET status = ? WHERE id = ?',
-            [accountStatus.ACTIVE, readerID]
-        );
+                await connection.query(query.text, query.values);
 
-        res.status(200).send('Reader unblocked');
+                res.status(200).send('ok');
+            } catch (e) {
+                next(e);
+            }
+        };
     }
 }
 
