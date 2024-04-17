@@ -58,6 +58,54 @@ class ReadersController extends DefaultController {
         };
     }
 
+    returnBook () {
+        return async (req, res, next) => {
+            try {
+                const id = req.body.id;
+                const bookID = req.body.bookID;
+
+                const queryGetHistory = sql
+                    .select()
+                    .from(dbTablesNames.GIVEN_BOOKS)
+                    .where(sql.and(sql.eq('readerID', id), sql.eq('bookID', bookID)))
+                    .toParams({ placeholder: '?' });
+
+                const historyRecords = (await connection.query(queryGetHistory.text, queryGetHistory.values))[0];
+
+                if (historyRecords.length <= 0) {
+                    return res.status(400).send(`Reader with id ${id} hasn't a book with id ${bookID}`);
+                }
+
+                const queryChangeReaderBooksAmount = sql
+                    .update(this._tableName)
+                    .set(sql('booksAmount = booksAmount - 1'))
+                    .where(sql.eq('id', id))
+                    .toParams({ placeholder: '?' });
+
+                await connection.query(queryChangeReaderBooksAmount.text, queryChangeReaderBooksAmount.values);
+
+                const queryChangeBooksAmount = sql
+                    .update(dbTablesNames.BOOKS)
+                    .set(sql('amount = amount + 1'))
+                    .where(sql.eq('id', bookID))
+                    .toParams({ placeholder: '?' });
+
+                await connection.query(queryChangeBooksAmount.text, queryChangeBooksAmount.values);
+
+                const deleteHistoryRecord = sql
+                    .delete(dbTablesNames.GIVEN_BOOKS)
+                    .where(sql.eq('id', historyRecords[0].id))
+                    .toParams({ placeholder: '?' });
+
+                await connection.query(deleteHistoryRecord.text, deleteHistoryRecord.values);
+
+                res.status(200).send('ok');
+            } catch (e) {
+                next(e);
+            }
+        };
+    }
+
     changeStatus () {
         return async (req, res, next) => {
             try {
