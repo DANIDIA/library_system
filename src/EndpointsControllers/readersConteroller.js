@@ -84,6 +84,28 @@ class ReadersController extends DefaultController {
             }
         };
     }
+
+    remove () {
+        return async (req, res, next) => {
+            try {
+                const query = sql
+                    .select(sql('COUNT(id) as gotBooks'))
+                    .from(dbTablesNames.GIVEN_BOOKS)
+                    .where(sql.eq('readerID', req.body.id))
+                    .toParams({ placeholder: '?' });
+
+                const gotBooks = (await connection.query(query.text, query.values))[0][0];
+
+                if (gotBooks > 0) {
+                    return res.status(400).send(`Reader with id ${req.body.id} didn't return all books`);
+                }
+
+                super.remove(req, res);
+            } catch (e) {
+                next(e);
+            }
+        };
+    }
 }
 
 export const readersController = new ReadersController();
