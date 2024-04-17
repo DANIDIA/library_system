@@ -2,7 +2,7 @@ import { connection } from '../Helpers/index.js';
 import sql from 'mysql-bricks';
 
 export class DefaultController {
-    constructor (tableName, fieldsNeededToAdd, updatableFields, searchableFields) {
+    constructor (tableName, updatableFields, searchableFields) {
         this._tableName = tableName;
         this._updatableFields = updatableFields;
         this._serchableFields = searchableFields;
