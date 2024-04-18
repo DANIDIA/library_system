@@ -9,57 +9,53 @@ export class DefaultController {
         this._serchableFields = searchableFields;
     }
 
-    get () {
-        return async (req, res) => {
-            let query = sql.select().from(this._tableName);
-            let condition;
+    async get (req, res) {
+        let query = sql.select().from(this._tableName);
+        let condition;
 
-            for (const field in this._serchableFields) {
-                if (Object.hasOwn(req.body, field)) {
-                    const fieldEq = sql.eq(field, req.body[field]);
+        for (const field in this._serchableFields) {
+            if (Object.hasOwn(req.body, field)) {
+                const fieldEq = sql.eq(field, req.body[field]);
 
-                    condition = condition ? sql.and(condition, fieldEq) : fieldEq;
-                }
+                condition = condition ? sql.and(condition, fieldEq) : fieldEq;
             }
+        }
 
-            if (Object.hasOwn(req.body, 'fromRecordID')) {
-                const fromRecordIdGte = sql.gte('fromRecordID', req.body.fromRecordID);
+        if (Object.hasOwn(req.body, 'fromRecordID')) {
+            const fromRecordIdGte = sql.gte('fromRecordID', req.body.fromRecordID);
 
-                condition = condition ? sql.and(condition, fromRecordIdGte) : fromRecordIdGte;
-            }
+            condition = condition ? sql.and(condition, fromRecordIdGte) : fromRecordIdGte;
+        }
 
-            query = condition ? query.where(condition) : query;
+        query = condition ? query.where(condition) : query;
 
-            if (Object.hasOwn(req.body, 'recordAmount')) {
-                query = query.limit(req.body.recordAmount);
-            }
+        if (Object.hasOwn(req.body, 'recordAmount')) {
+            query = query.limit(req.body.recordAmount);
+        }
 
-            const params = query.toParams({ placeholder: '?' });
-            const values = (await connection.query(params.text, params.values))[0];
+        const params = query.toParams({ placeholder: '?' });
+        const values = (await connection.query(params.text, params.values))[0];
 
-            res.status(200).json(values);
-        };
+        res.status(200).json(values);
     }
 
-    update () {
-        return async (req, res) => {
-            const id = req.body.id;
-            const valuesToChange = {};
+    async update (req, res) {
+        const id = req.body.id;
+        const valuesToChange = {};
 
-            for (const field in this._updatableFields) {
-                if (Object.hasOwn(req.body, field)) { valuesToChange[field] = req.body[field]; }
-            }
+        for (const field in this._updatableFields) {
+            if (Object.hasOwn(req.body, field)) { valuesToChange[field] = req.body[field]; }
+        }
 
-            const query = sql
-                .update(this._tableName)
-                .set(valuesToChange)
-                .where(sql.eq('id', id))
-                .toParams({ placeholder: '?' });
+        const query = sql
+            .update(this._tableName)
+            .set(valuesToChange)
+            .where(sql.eq('id', id))
+            .toParams({ placeholder: '?' });
 
-            await connection.query(query.text, query.values);
+        await connection.query(query.text, query.values);
 
-            res.status(200).send('ok');
-        };
+        res.status(200).send('ok');
     }
 
     async changeStatus (req, res) {
@@ -85,18 +81,16 @@ export class DefaultController {
         res.status(200).send('ok');
     }
 
-    remove () {
-        return async (req, res) => {
-            const query = sql
-                .delete()
-                .from(this._tableName)
-                .where(sql.eq('id', req.body.id))
-                .toParams({ placeholder: '?' });
+    async remove (req, res) {
+        const query = sql
+            .delete()
+            .from(this._tableName)
+            .where(sql.eq('id', req.body.id))
+            .toParams({ placeholder: '?' });
 
-            await connection.query(query.text, query.values);
+        await connection.query(query.text, query.values);
 
-            res.status(200).send('ok');
-        };
+        res.status(200).send('ok');
     }
 
     /**
