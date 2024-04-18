@@ -6,7 +6,7 @@ import { connection } from '../Helpers/index.js';
 class UserController extends DefaultController {
     constructor () {
         const searchableFields = ['name', 'surname', 'role', 'phoneNumber', 'email', 'login'];
-        const updatableFields = [];
+        const updatableFields = ['name', 'surname', 'phoneNumber', 'email', 'login', 'password'];
         super(dbTablesNames.EMPLOYEES, updatableFields, searchableFields);
     }
 
@@ -54,6 +54,16 @@ class UserController extends DefaultController {
         return async (req, res, next) => {
             try {
                 await super.get(req, res);
+            } catch (e) {
+                next(e);
+            }
+        };
+    }
+
+    update () {
+        return async (req, res, next) => {
+            try {
+                await super.update(req, res);
             } catch (e) {
                 next(e);
             }
