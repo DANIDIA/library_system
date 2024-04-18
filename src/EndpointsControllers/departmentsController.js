@@ -8,7 +8,8 @@ import res from 'express/lib/response.js';
 export class DepartmentsController extends DefaultController {
     constructor () {
         const searchableFields = ['name', 'address', 'contactNumber', 'actualManagerID'];
-        super(dbTablesNames.DEPARTMENTS, searchableFields);
+        const updatableFields = ['name', 'address', 'contactNumber', 'actualManagerID'];
+        super(dbTablesNames.DEPARTMENTS, updatableFields, searchableFields);
     }
 
     add () {
@@ -58,31 +59,20 @@ export class DepartmentsController extends DefaultController {
         };
     }
 
-    changeData () {
-        return async (req, res) => {
-            const managerID = req.body.actualManagerID;
+    update () {
+        return async (req, res, next) => {
+            try {
+                const managerID = req.body.actualManagerID;
 
-            if (managerID && !(await recordExist(managerID, 'department_manager'))) {
-                return res.status(404).send('Manager not exist');
+                if (Object.hasOwn(req.body, 'actualManagerID') &&
+                    !(await recordExist(managerID, dbTablesNames.EMPLOYEES))) {
+                    return res.status(404).send(`Department manager with id ${managerID} doesn't exist`);
+                }
+
+                await super.update(req, res);
+            } catch (e) {
+                next(e);
             }
-
-            const valuesToChange = {};
-
-            if (req.body.name) valuesToChange.name = req.body.name;
-            if (req.body.address) valuesToChange.address = req.body.address;
-            if (req.body.contactNumber) valuesToChange.contact_number = req.body.contactNumber;
-            if (managerID) valuesToChange.actual_manager = managerID;
-
-            const query = sql.update(this._tableName).set(valuesToChange).toParams({ placeholder: '?' });
-
-            const { err } = handleQuery(query);
-
-            if (err) {
-                console.log(err);
-                return res.status(500).send(err);
-            }
-
-            res.status(200).send('ok');
         };
     }
 }
