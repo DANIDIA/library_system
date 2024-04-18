@@ -2,10 +2,13 @@ import { DefaultController } from './defaultController.js';
 import { connection, handleQuery, recordExist } from '../Helpers/index.js';
 import sql from 'mysql-bricks';
 import { dbTablesNames } from '../enums/index.js';
+import req from 'express/lib/request.js';
+import res from 'express/lib/response.js';
 
 export class DepartmentsController extends DefaultController {
     constructor () {
-        super(dbTablesNames.DEPARTMENTS);
+        const searchableFields = ['name', 'address', 'contactNumber', 'actualManagerID'];
+        super(dbTablesNames.DEPARTMENTS, searchableFields);
     }
 
     add () {
@@ -39,6 +42,16 @@ export class DepartmentsController extends DefaultController {
                 await connection.query(query.text, query.values);
 
                 res.status(200).send('ok');
+            } catch (e) {
+                next(e);
+            }
+        };
+    }
+
+    get () {
+        return async (req, res, next) => {
+            try {
+                await super.get(req, res);
             } catch (e) {
                 next(e);
             }
