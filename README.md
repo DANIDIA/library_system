@@ -4,7 +4,7 @@
 - [x] Make `handleEndpointsErrors` middleware
 - [x] Rewrite CRUD operations for all endpoints
 - [x] Rewrite a get/return books system
-- [ ] Rewrite authentication
+- [x] Rewrite authentication
 - [ ] Rewrite roles system
 - [ ] Make blocking system for employees and readers
 
