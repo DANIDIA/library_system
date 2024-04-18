@@ -1,6 +1,6 @@
 import { connection } from '../Helpers/index.js';
 
-class UserController {
+class SessionsController {
     async login (req, res) {
         const [users] = await connection.query(
             'SELECT id FROM employee_account WHERE login = ? AND password = ?',
@@ -42,4 +42,4 @@ class UserController {
     }
 }
 
-export const userController = new UserController();
+export const sessionsController = new SessionsController();
