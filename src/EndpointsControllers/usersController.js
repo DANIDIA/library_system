@@ -1,12 +1,12 @@
 import { DefaultController } from './defaultController.js';
 import { accountStatus, dbTablesNames, role } from '../enums/index.js';
 import sql from 'mysql-bricks';
-import { connection } from '../Helpers/index.js';
+import { connection, recordExist } from '../Helpers/index.js';
 
 class UsersController extends DefaultController {
     constructor () {
-        const searchableFields = ['name', 'surname', 'role', 'phoneNumber', 'email', 'login'];
-        const updatableFields = ['name', 'surname', 'phoneNumber', 'email', 'login', 'password'];
+        const searchableFields = ['name', 'surname', 'role', 'phoneNumber', 'email', 'login', 'departmentID'];
+        const updatableFields = ['name', 'surname', 'phoneNumber', 'email', 'login', 'password', 'departmentID'];
         super(dbTablesNames.EMPLOYEES, updatableFields, searchableFields);
     }
 
@@ -18,6 +18,7 @@ class UsersController extends DefaultController {
                     surname: true,
                     phoneNumber: true,
                     role: true,
+                    departmentID: true,
                     email: false
                 };
 
@@ -25,6 +26,10 @@ class UsersController extends DefaultController {
 
                 if (typeof values === 'string') {
                     return res.status(400).send(`Field with name '${values}' is necessary`);
+                }
+
+                if (!(await recordExist(req.body.departmentID, dbTablesNames.DEPARTMENTS))) {
+                    return res.status(404).send(`Department with id ${req.body.departmentID} doesn't exist`);
                 }
 
                 if (!Object.values(role).includes(req.body.role)) {
@@ -63,6 +68,11 @@ class UsersController extends DefaultController {
     update () {
         return async (req, res, next) => {
             try {
+                if (Object.hasOwn(req.body, 'departmentID') &&
+                    !(await recordExist(req.body.departmentID, dbTablesNames.DEPARTMENTS))) {
+                    return res.status(404).send(`Department with id ${req.body.departmentID} doesn't exist`);
+                }
+
                 await super.update(req, res);
             } catch (e) {
                 next(e);
