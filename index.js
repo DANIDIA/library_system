@@ -2,7 +2,7 @@ import express from 'express';
 import {
     booksRouter,
     readersRouter,
-    userRouter,
+    sessionsRouter,
     departmentsRouter,
     handleEndpointsErrors,
     usersRouter
@@ -12,7 +12,7 @@ const PORT = 5000;
 
 const app = express();
 app.use(express.json());
-app.use('/user', userRouter);
+app.use('/sessions', sessionsRouter);
 app.use('/readers', readersRouter);
 app.use('/books', booksRouter);
 app.use('/users', usersRouter);
