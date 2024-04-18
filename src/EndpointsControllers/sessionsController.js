@@ -1,33 +1,36 @@
 import { connection } from '../Helpers/index.js';
+import sql from 'mysql-bricks';
+import { dbTablesNames } from '../enums/index.js';
 
 class SessionsController {
-    async login (req, res) {
-        const [users] = await connection.query(
-            'SELECT id FROM employee_account WHERE login = ? AND password = ?',
-            [req.body.login, req.body.password]
-        );
+    async login (req, res, next) {
+        try {
+            const queryCheck = sql
+                .select()
+                .from(dbTablesNames.EMPLOYEES)
+                .where(sql.and(sql.eq('login', req.body.login), sql.eq('password', req.body.password)))
+                .toParams({ placeholder: '?' });
 
-        if (users.length === 0) {
-            return res.status(404).send('Invalid login or password');
+            const users = (await connection.query(queryCheck.text, queryCheck.values))[0];
+
+            if (users.length < 0) {
+                return res.status(403).send('Forbidden');
+            }
+
+            const queryInsertSession = sql
+                .insert(dbTablesNames.ACTIVE_SESSIONS)
+                .values({
+                    employeeID: users[0].id,
+                    start: sql('NOW()')
+                })
+                .toParams({ placeholder: '?' });
+
+            const value = (await connection.query(queryInsertSession.text, queryInsertSession.values));
+
+            res.status(200).json({ sessionID: value.insertId });
+        } catch (e) {
+            next(e);
         }
-
-        const userID = users[0].id;
-
-        const [sessions] = await connection.query(
-            'SELECT * FROM session WHERE employee_id = ? ORDER BY start DESC LIMIT 1',
-            [userID]
-        );
-
-        if (sessions.length > 0 && sessions[0].end === null) {
-            return res.status(400).send('There is an active session');
-        }
-
-        const [insertionData] = await connection.query(
-            'INSERT INTO session (employee_id, start) values (?, current_timestamp())',
-            [userID]
-        );
-
-        res.status(200).json({ sessionID: insertionData.insertId });
     }
 
     async logout (req, res) {
