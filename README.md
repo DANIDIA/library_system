@@ -2,7 +2,7 @@
 
 #### Big changes
 - [x] Make `handleEndpointsErrors` middleware
-- [ ] Rewrite CRUD operations for all endpoints
+- [x] Rewrite CRUD operations for all endpoints
 - [x] Rewrite a get/return books system
 - [ ] Rewrite authentication
 - [ ] Rewrite roles system
