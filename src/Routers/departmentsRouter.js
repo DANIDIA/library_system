@@ -6,7 +6,7 @@ export const departmentsRouter = express.Router();
 
 departmentsRouter.use(authenticate);
 
-departmentsRouter.post('/add', validateRoles());
-departmentsRouter.get('/get', validateRoles());
-departmentsRouter.put('/update', validateRoles());
-departmentsRouter.put('/remove', validateRoles());
+departmentsRouter.post('/add', validateRoles(), departmentsController.add());
+departmentsRouter.get('/get', validateRoles(), departmentsController.get());
+departmentsRouter.put('/update', validateRoles(), departmentsController.update());
+departmentsRouter.put('/remove', validateRoles(), departmentsController.remove());
