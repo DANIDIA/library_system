@@ -110,7 +110,7 @@ export class DepartmentsController extends DefaultController {
                 const queryRemove = sql
                     .delete(this._tableName)
                     .where(sql.eq('id', req.body.id))
-                    .toParams({ placholder: '?' });
+                    .toParams({ placeholder: '?' });
 
                 await connection.query(queryRemove.text, queryRemove.values);
 
@@ -122,4 +122,4 @@ export class DepartmentsController extends DefaultController {
     }
 }
 
-export const departmentController = new DepartmentsController();
+export const departmentsController = new DepartmentsController();
