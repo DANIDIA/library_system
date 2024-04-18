@@ -1,9 +1,7 @@
 import { DefaultController } from './defaultController.js';
-import { connection, handleQuery, recordExist } from '../Helpers/index.js';
+import { connection, recordExist } from '../Helpers/index.js';
 import sql from 'mysql-bricks';
 import { dbTablesNames } from '../enums/index.js';
-import req from 'express/lib/request.js';
-import res from 'express/lib/response.js';
 
 export class DepartmentsController extends DefaultController {
     constructor () {
