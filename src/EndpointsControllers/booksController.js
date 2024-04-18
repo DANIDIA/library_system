@@ -23,7 +23,7 @@ class BooksController extends DefaultController {
                 const values = this._getValuesFromRequestBody(req.body, fields);
 
                 if (typeof values === 'string') {
-                    return res.status(400).send(`Field with name '${values}' is necessary`);
+                    return res.status(404).send(`Field with name '${values}' is necessary`);
                 }
 
                 const query = sql
@@ -92,11 +92,11 @@ class BooksController extends DefaultController {
                 const user = await getUserBySession(req.body.sessionID);
 
                 if (!(await recordExist(id, this._tableName))) {
-                    return res.status(400).send(`Book with ID ${id} doesn't exist`);
+                    return res.status(404).send(`Book with ID ${id} doesn't exist`);
                 }
 
                 if (!(await recordExist(readerID, dbTablesNames.READERS))) {
-                    return res.status(400).send(`Reader with ID ${readerID} doesn't exist`);
+                    return res.status(404).send(`Reader with ID ${readerID} doesn't exist`);
                 }
 
                 const queryGetBook = sql

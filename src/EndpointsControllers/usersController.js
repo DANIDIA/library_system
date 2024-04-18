@@ -25,7 +25,7 @@ class UsersController extends DefaultController {
                 const values = this._getValuesFromRequestBody(req.body, fields);
 
                 if (typeof values === 'string') {
-                    return res.status(400).send(`Field with name '${values}' is necessary`);
+                    return res.status(404).send(`Field with name '${values}' is necessary`);
                 }
 
                 if (!(await recordExist(req.body.departmentID, dbTablesNames.DEPARTMENTS))) {
@@ -33,7 +33,7 @@ class UsersController extends DefaultController {
                 }
 
                 if (!Object.values(role).includes(req.body.role)) {
-                    return res.status(400).send(`Role with id ${req.body.role} doesn't exist`);
+                    return res.status(404).send(`Role with id ${req.body.role} doesn't exist`);
                 }
 
                 const login = req.body.name + req.body.surname;

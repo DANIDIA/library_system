@@ -66,7 +66,7 @@ export class DefaultController {
         }
 
         if (typeof req.body.isActive !== 'boolean') {
-            res.status(400).send('valid value for isActive field');
+            res.status(400).send('Invalid value for isActive field');
         }
 
         const query = sql

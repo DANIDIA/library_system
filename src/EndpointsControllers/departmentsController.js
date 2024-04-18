@@ -30,7 +30,7 @@ export class DepartmentsController extends DefaultController {
                 const values = this._getValuesFromRequestBody(req.body, fields);
 
                 if (typeof values === 'string') {
-                    return res.status(400).send(`Field with name '${values}' is necessary`);
+                    return res.status(404).send(`Field with name '${values}' is necessary`);
                 }
 
                 const query = sql

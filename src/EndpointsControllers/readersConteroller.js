@@ -19,7 +19,7 @@ class ReadersController extends DefaultController {
                 const values = this._getValuesFromRequestBody(req.body, fields);
 
                 if (typeof values === 'string') {
-                    return res.status(400).send(`Field with name '${values}' is necessary`);
+                    return res.status(404).send(`Field with name '${values}' is necessary`);
                 }
 
                 const query = sql
@@ -51,7 +51,7 @@ class ReadersController extends DefaultController {
     update () {
         return async (req, res, next) => {
             try {
-                this.update(req, res);
+                await this.update(req, res);
             } catch (e) {
                 next(e);
             }
