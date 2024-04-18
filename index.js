@@ -1,5 +1,12 @@
 import express from 'express';
-import { booksRouter, readersRouter, userRouter, departmentRouter, handleEndpointsErrors } from './src/index.js';
+import {
+    booksRouter,
+    readersRouter,
+    userRouter,
+    departmentRouter,
+    handleEndpointsErrors,
+    usersRouter
+} from './src/index.js';
 
 const PORT = 5000;
 
@@ -8,6 +15,7 @@ app.use(express.json());
 app.use('/user', userRouter);
 app.use('/readers', readersRouter);
 app.use('/books', booksRouter);
+app.use('/users', usersRouter);
 app.use('/department', departmentRouter);
 
 app.use(handleEndpointsErrors);
