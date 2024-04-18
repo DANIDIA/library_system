@@ -3,7 +3,7 @@ import {
     booksRouter,
     readersRouter,
     userRouter,
-    departmentRouter,
+    departmentsRouter,
     handleEndpointsErrors,
     usersRouter
 } from './src/index.js';
@@ -16,7 +16,7 @@ app.use('/user', userRouter);
 app.use('/readers', readersRouter);
 app.use('/books', booksRouter);
 app.use('/users', usersRouter);
-app.use('/department', departmentRouter);
+app.use('/departments', departmentsRouter);
 
 app.use(handleEndpointsErrors);
 
