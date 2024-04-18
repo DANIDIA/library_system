@@ -1,10 +1,11 @@
 import { DefaultController } from './defaultController.js';
 import { handleQuery, recordExist } from '../Helpers/index.js';
 import sql from 'mysql-bricks';
+import { dbTablesNames } from '../enums/index.js';
 
-export class DepartmentController extends DefaultController {
+export class DepartmentsController extends DefaultController {
     constructor () {
-        super('department');
+        super(dbTablesNames.DEPARTMENTS);
     }
 
     create () {
@@ -28,37 +29,6 @@ export class DepartmentController extends DefaultController {
             }
 
             res.status(200).json(values[0].insertId);
-        };
-    }
-
-    getBooks () {
-        return async (req, res) => {
-            const fromID = req.body.fromID;
-            const amount = req.body.amount * 1;
-            const departmentID = req.body.departmentID;
-
-            if (!(await recordExist(departmentID, this._tableName))) {
-                return res.status(404).send('Department not exist');
-            }
-
-            const query = sql.select()
-                .from('book')
-                .join(this._tableName, { 'book.current_department': 'department.id' })
-                .where(sql.and(sql.gte('book.id', fromID), sql.eq('department.id', departmentID)))
-                .limit(amount)
-                .toParams({ placeholder: '?' });
-
-            const {
-                values,
-                err
-            } = await handleQuery(query);
-
-            if (err) {
-                console.log(err);
-                return res.status(500).send(err);
-            }
-
-            res.status(200).json(values[0]);
         };
     }
 
@@ -91,4 +61,4 @@ export class DepartmentController extends DefaultController {
     }
 }
 
-export const departmentController = new DepartmentController();
+export const departmentController = new DepartmentsController();

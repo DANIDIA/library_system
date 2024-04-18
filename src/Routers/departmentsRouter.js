@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticate, validateRoles } from '../Helpers/index.js';
-import { departmentController } from '../EndpointsControllers/index.js';
+import { departmentsController } from '../EndpointsControllers/index.js';
 
 export const departmentsRouter = express.Router();
 
