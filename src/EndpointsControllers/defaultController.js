@@ -1,5 +1,6 @@
 import { connection } from '../Helpers/index.js';
 import sql from 'mysql-bricks';
+import { accountStatus } from '../enums/index.js';
 
 export class DefaultController {
     constructor (tableName, updatableFields, searchableFields) {
@@ -59,6 +60,29 @@ export class DefaultController {
 
             res.status(200).send('ok');
         };
+    }
+
+    async changeStatus (req, res) {
+        const id = req.body.id;
+
+        if (!Object.hasOwn(req.body, 'isActive')) {
+            res.status(400).send('No isActive field');
+        }
+
+        if (typeof req.body.isActive !== 'boolean') {
+            res.status(400).send('valid value for isActive field');
+        }
+
+        const query = sql
+            .update(this._tableName,
+                { isActive: req.body.isActive ? accountStatus.ACTIVE : accountStatus.BLOCKED }
+            )
+            .where(sql.eq('id', id))
+            .toParams({ placeholder: '?' });
+
+        await connection.query(query.text, query.values);
+
+        res.status(200).send('ok');
     }
 
     remove () {
