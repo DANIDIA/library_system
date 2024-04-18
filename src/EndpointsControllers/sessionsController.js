@@ -14,7 +14,7 @@ class SessionsController {
             const users = (await connection.query(queryCheck.text, queryCheck.values))[0];
 
             if (users.length < 0) {
-                return res.status(403).send('Forbidden');
+                return res.status(401).send('Unauthorized');
             }
 
             const queryInsertSession = sql
