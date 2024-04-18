@@ -33,15 +33,21 @@ class SessionsController {
         }
     }
 
-    async logout (req, res) {
-        const sessionID = req.body.sessionID;
+    async logout (req, res, next) {
+        try {
+            const id = req.body.id;
 
-        await connection.query(
-            'UPDATE session SET end = CURRENT_TIMESTAMP() WHERE id = ?',
-            [sessionID]
-        );
+            const query = sql
+                .delete(dbTablesNames.ACTIVE_SESSIONS)
+                .where(sql.eq('id', id))
+                .toParams({ placeholder: '?' });
 
-        res.status(200).send('Logout complete');
+            await connection.query(query.text, query.values);
+
+            res.status(200).send('ok');
+        } catch (e) {
+            next(e);
+        }
     }
 }
 
