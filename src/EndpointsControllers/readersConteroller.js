@@ -26,7 +26,7 @@ class ReadersController extends DefaultController {
                     .insert(this._tableName,
                         [...Object.keys(fields), 'booksAmount', 'whoAddID', 'isActive', 'additionDate']
                     )
-                    .values([...values, 0, user.id, accountStatus.ACTIVE, 'NOW()'])
+                    .values([...values, 0, user.id, accountStatus.ACTIVE, sql('NOW()')])
                     .toParams({ placeholder: '?' });
 
                 await connection.query(query.text, query.values);
