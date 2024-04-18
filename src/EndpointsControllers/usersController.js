@@ -3,7 +3,7 @@ import { accountStatus, dbTablesNames, role } from '../enums/index.js';
 import sql from 'mysql-bricks';
 import { connection } from '../Helpers/index.js';
 
-class UserController extends DefaultController {
+class UsersController extends DefaultController {
     constructor () {
         const searchableFields = ['name', 'surname', 'role', 'phoneNumber', 'email', 'login'];
         const updatableFields = ['name', 'surname', 'phoneNumber', 'email', 'login', 'password'];
@@ -81,4 +81,4 @@ class UserController extends DefaultController {
     }
 }
 
-export const userController = new UserController();
+export const usersController = new UsersController();
