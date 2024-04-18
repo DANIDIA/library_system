@@ -1,4 +1,4 @@
-import { connection } from '../Helpers/index.js';
+import { connection, recordExist } from '../Helpers/index.js';
 import sql from 'mysql-bricks';
 import { dbTablesNames } from '../enums/index.js';
 
@@ -45,6 +45,18 @@ class SessionsController {
             await connection.query(query.text, query.values);
 
             res.status(200).send('ok');
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async isSessionEnded (req, res, next) {
+        try {
+            const id = req.body.id;
+
+            const result = !await recordExist(id, dbTablesNames.ACTIVE_SESSIONS);
+
+            res.status(200).json({ isEnded: result });
         } catch (e) {
             next(e);
         }
