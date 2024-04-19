@@ -1,12 +1,14 @@
 import express from 'express';
-import { authenticate, validateRoles } from '../Helpers/index.js';
+import { authenticate } from '../Helpers/index.js';
 import { usersController } from '../EndpointsControllers/index.js';
+import { forManagerRule } from '../accessRules/index.js';
 
 export const usersRouter = express.Router();
 
 usersRouter.use(authenticate);
+usersRouter.use(forManagerRule('departmentID'));
 
-usersRouter.post('/add', validateRoles(), usersController.add());
-usersRouter.post('/get', validateRoles(), usersController.get());
-usersRouter.post('/update', validateRoles(), usersController.update());
-usersRouter.post('/change_status', validateRoles(), usersController.changeStatus());
+usersRouter.post('/add', usersController.add());
+usersRouter.post('/get', usersController.get());
+usersRouter.post('/update', usersController.update());
+usersRouter.post('/change_status', usersController.changeStatus());
