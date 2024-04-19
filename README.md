@@ -5,7 +5,7 @@
 - [x] Rewrite CRUD operations for all endpoints
 - [x] Rewrite a get/return books system
 - [x] Rewrite authentication
-- [ ] Rewrite roles system
+- [x] Rewrite roles system
 - [ ] Make blocking system for employees and readers
 
 #### Changes
