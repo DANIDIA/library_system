@@ -1,6 +1,6 @@
 import { connection, recordExist } from '../Helpers/index.js';
 import sql from 'mysql-bricks';
-import { dbTablesNames } from '../enums/index.js';
+import { accountStatus, dbTablesNames } from '../enums/index.js';
 
 class SessionsController {
     async login (req, res, next) {
@@ -15,6 +15,10 @@ class SessionsController {
 
             if (users.length < 0) {
                 return res.status(401).send('Unauthorized');
+            }
+
+            if (users[0].isActive === accountStatus.BLOCKED) {
+                return res.status(403).send('Forbidden');
             }
 
             const queryInsertSession = sql
