@@ -1,5 +1,5 @@
 import { connection } from './database.js';
-import { accountStatus, sessionStatus } from '../enums/index.js';
+import { accountStatus, dbTablesNames, sessionStatus } from '../enums/index.js';
 import sql from 'mysql-bricks';
 
 export async function handleQuery ({ text, values }) {
@@ -73,4 +73,13 @@ export async function createUserAccount (name, surname, email, phoneNumber, role
     const { values } = await handleQuery(query);
 
     return values[0].insertId;
+}
+
+export async function endAllUserSessions (id) {
+    const query = sql
+        .delete(dbTablesNames.ACTIVE_SESSIONS)
+        .where(sql.eq('employeeID', id))
+        .toParams({ placeholder: '?' });
+
+    await connection.query(query.text, query.values);
 }
