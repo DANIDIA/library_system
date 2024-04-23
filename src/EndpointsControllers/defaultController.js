@@ -1,4 +1,4 @@
-import { connection } from '../Helpers/index.js';
+import { connection, endAllUserSessions } from '../Helpers/index.js';
 import sql from 'mysql-bricks';
 import { accountStatus } from '../enums/index.js';
 
@@ -69,10 +69,14 @@ export class DefaultController {
             res.status(400).send('Invalid value for isActive field');
         }
 
+        const isActive = req.body.isActive ? accountStatus.ACTIVE : accountStatus.BLOCKED;
+
+        if (isActive === accountStatus.BLOCKED) {
+            await endAllUserSessions(id);
+        }
+
         const query = sql
-            .update(this._tableName,
-                { isActive: req.body.isActive ? accountStatus.ACTIVE : accountStatus.BLOCKED }
-            )
+            .update(this._tableName, { isActive })
             .where(sql.eq('id', id))
             .toParams({ placeholder: '?' });
 
