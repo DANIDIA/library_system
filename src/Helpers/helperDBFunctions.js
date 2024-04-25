@@ -1,17 +1,6 @@
 import { connection } from './database.js';
-import { accountStatus, dbTablesNames, sessionStatus } from '../enums/index.js';
+import { dbTablesNames, sessionStatus } from '../enums/index.js';
 import sql from 'mysql-bricks';
-
-export async function handleQuery ({ text, values }) {
-    let _err;
-    const _values = await (connection.query(text, values)
-        .then(data => data)
-        .catch(err => {
-            _err = err;
-        }));
-
-    return { values: _values, err: _err };
-}
 
 /**
  * @param{string} sessionID
@@ -52,27 +41,6 @@ export async function recordExist (recordID, tableName) {
         [recordID]
     );
     return records.length > 0;
-}
-
-export async function createUserAccount (name, surname, email, phoneNumber, role) {
-    // TODO: make login generator
-    // TODO: make password generator
-    const query = sql
-        .insert('employee_account', {
-            name,
-            surname,
-            phone_number: phoneNumber,
-            role,
-            addition_time: sql('NOW()'),
-            login: name + surname,
-            password: 'qwerty',
-            status: accountStatus.ACTIVE
-        })
-        .toParams({ placeholder: '?' });
-
-    const { values } = await handleQuery(query);
-
-    return values[0].insertId;
 }
 
 export async function endAllUserSessions (id) {
