@@ -123,6 +123,10 @@ class BooksController extends DefaultController {
                     return res.status(400).send('Reader has maximum of books');
                 }
 
+                if (!reader.isActive) {
+                    return res.status(400).send(`Reader with id ${readerID} is blocked`);
+                }
+
                 const queryChangeBookAmountInDepartment = sql
                     .update(this._tableName)
                     .set({ amount: book.amount - 1 })
