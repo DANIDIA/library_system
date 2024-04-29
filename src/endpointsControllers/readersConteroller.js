@@ -149,7 +149,7 @@ class ReadersController extends DefaultController {
                     return res.status(400).send(`Reader with id ${req.body.id} didn't return all books`);
                 }
 
-                super.remove(req, res);
+                await super.remove(req, res);
             } catch (e) {
                 next(e);
             }
