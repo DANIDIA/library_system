@@ -1,4 +1,6 @@
 import sql from 'mysql-bricks';
+import emailValidator from 'email-validator';
+import phone from 'phone';
 import { connection, getUserBySession } from '../helpers/index.js';
 import { accountStatus, dbTablesNames } from '../enums/index.js';
 import { DefaultController } from './defaultController.js';
@@ -20,6 +22,14 @@ class ReadersController extends DefaultController {
 
                 if (typeof values === 'string') {
                     return res.status(404).send(`Field with name '${values}' is necessary`);
+                }
+
+                if (!emailValidator.validate(req.body.email)) {
+                    return res.status(400).send('Email is incorrect');
+                }
+
+                if (!phone(req.body.phoneNumber).isValid) {
+                    return res.status(400).send('Phone number is incorrect');
                 }
 
                 const query = sql
@@ -50,6 +60,14 @@ class ReadersController extends DefaultController {
 
     update () {
         return async (req, res, next) => {
+            if (Object.hasOwn(req.body, 'email') && !emailValidator.validate(req.body.email)) {
+                return res.status(400).send('Email is incorrect');
+            }
+
+            if (Object.hasOwn(req.body, 'phoneNumber') && !phone(req.body.phoneNumber).isValid) {
+                return res.status(400).send('Phone number is incorrect');
+            }
+
             try {
                 await this.update(req, res);
             } catch (e) {

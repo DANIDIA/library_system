@@ -1,4 +1,6 @@
 import sql from 'mysql-bricks';
+import emailValidator from 'email-validator';
+import phone from 'phone';
 import { DefaultController } from './defaultController.js';
 import { accountStatus, dbTablesNames, role } from '../enums/index.js';
 import { connection, recordExist } from '../helpers/index.js';
@@ -36,6 +38,14 @@ class UsersController extends DefaultController {
                     return res.status(404).send(`Role with id ${req.body.role} doesn't exist`);
                 }
 
+                if (!emailValidator.validate(req.body.email)) {
+                    return res.status(400).send('Email is incorrect');
+                }
+
+                if (!phone(req.body.phoneNumber).isValid) {
+                    return res.status(400).send('Phone number is incorrect');
+                }
+
                 const login = req.body.name + req.body.surname;
                 const password = '123456';
 
@@ -71,6 +81,14 @@ class UsersController extends DefaultController {
                 if (Object.hasOwn(req.body, 'departmentID') &&
                     !(await recordExist(req.body.departmentID, dbTablesNames.DEPARTMENTS))) {
                     return res.status(404).send(`Department with id ${req.body.departmentID} doesn't exist`);
+                }
+
+                if (Object.hasOwn(req.body, 'email') && !emailValidator.validate(req.body.email)) {
+                    return res.status(400).send('Email is incorrect');
+                }
+
+                if (Object.hasOwn(req.body, 'phoneNumber') && !phone(req.body.phoneNumber).isValid) {
+                    return res.status(400).send('Phone number is incorrect');
                 }
 
                 await super.update(req, res);
