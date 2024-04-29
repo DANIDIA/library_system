@@ -57,7 +57,7 @@ class BooksController extends DefaultController {
 
                 const query = sql
                     .select(sql('COUNT(id) as givenAmount'))
-                    .from('givenbooks')
+                    .from(dbTablesNames.GIVEN_BOOKS)
                     .where(sql.eq('bookID', id))
                     .toParams({ placeholder: '?' });
 
