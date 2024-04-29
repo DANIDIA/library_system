@@ -5,6 +5,7 @@ import passwordGenerator from 'generate-password';
 import { DefaultController } from './defaultController.js';
 import { accountStatus, dbTablesNames, role } from '../enums/index.js';
 import { connection, recordExist } from '../helpers/index.js';
+import { MAX_PHONE_NUMBER_LENGTH } from '../helpers/constants.js';
 
 class UsersController extends DefaultController {
     constructor () {
@@ -43,7 +44,8 @@ class UsersController extends DefaultController {
                     return res.status(400).send('Email is incorrect');
                 }
 
-                if (!phone.phone(req.body.phoneNumber).isValid) {
+                if (!phone.phone(req.body.phoneNumber).isValid &&
+                    req.body.phoneNumber.length <= MAX_PHONE_NUMBER_LENGTH) {
                     return res.status(400).send('Phone number is incorrect');
                 }
 
