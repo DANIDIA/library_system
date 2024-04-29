@@ -1,7 +1,9 @@
 import sql from 'mysql-bricks';
+import phone from 'phone';
 import { DefaultController } from './defaultController.js';
 import { connection, recordExist } from '../helpers/index.js';
 import { dbTablesNames } from '../enums/index.js';
+import { validate } from 'email-validator';
 
 export class DepartmentsController extends DefaultController {
     constructor () {
@@ -31,6 +33,10 @@ export class DepartmentsController extends DefaultController {
 
                 if (typeof values === 'string') {
                     return res.status(404).send(`Field with name '${values}' is necessary`);
+                }
+
+                if (!phone(req.body.contactNumber).isValid) {
+                    return res.status(400).send('Number phone is incorrect');
                 }
 
                 const query = sql
@@ -65,6 +71,10 @@ export class DepartmentsController extends DefaultController {
                 if (Object.hasOwn(req.body, 'actualManagerID') &&
                     !(await recordExist(managerID, dbTablesNames.EMPLOYEES))) {
                     return res.status(404).send(`Department manager with id ${managerID} doesn't exist`);
+                }
+
+                if (Object.hasOwn(req.body, 'contactNumber') && !phone(req.body.contactNumber).isValid) {
+                    return res.status(400).send('Number phone is incorrect');
                 }
 
                 await super.update(req, res);
