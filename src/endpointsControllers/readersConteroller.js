@@ -1,160 +1,180 @@
 import sql from 'mysql-bricks';
-import emailValidator from 'email-validator';
-import phone from 'phone';
 import { connection, getUserBySession } from '../helpers/index.js';
 import { accountStatus, dbTablesNames } from '../enums/index.js';
 import { DefaultController } from './defaultController.js';
+import {
+  validateEmail,
+  validatePhoneNumber,
+} from '../helpers/contactDetailsValidators.js';
 
 class ReadersController extends DefaultController {
-    constructor () {
-        const updatableFields = ['name', 'surname', 'phoneNumber', 'email'];
-        const searchableFields = ['name', 'surname', 'phoneNumber', 'email'];
-        super(dbTablesNames.READERS, updatableFields, searchableFields);
-    }
+  constructor() {
+    const updatableFields = ['name', 'surname', 'phoneNumber', 'email'];
+    const searchableFields = ['name', 'surname', 'phoneNumber', 'email'];
+    super(dbTablesNames.READERS, updatableFields, searchableFields);
+  }
 
-    add () {
-        return async (req, res, next) => {
-            try {
-                const user = await getUserBySession(req.body.sessionID);
+  add() {
+    return async (req, res, next) => {
+      try {
+        const user = await getUserBySession(req.body.sessionID);
 
-                const fields = { name: true, surname: true, phoneNumber: true, email: false };
-                const values = this._getValuesFromRequestBody(req.body, fields);
-
-                if (typeof values === 'string') {
-                    return res.status(404).send(`Field with name '${values}' is necessary`);
-                }
-
-                if (!emailValidator.validate(req.body.email)) {
-                    return res.status(400).send('Email is incorrect');
-                }
-
-                if (!phone(req.body.phoneNumber).isValid) {
-                    return res.status(400).send('Phone number is incorrect');
-                }
-
-                const query = sql
-                    .insert(this._tableName,
-                        [...Object.keys(fields), 'booksAmount', 'whoAddID', 'isActive', 'additionDate']
-                    )
-                    .values([...values, 0, user.id, accountStatus.ACTIVE, sql('NOW()')])
-                    .toParams({ placeholder: '?' });
-
-                await connection.query(query.text, query.values);
-
-                res.status(200).json('ok');
-            } catch (e) {
-                next(e);
-            }
+        const fields = {
+          name: true,
+          surname: true,
+          phoneNumber: true,
+          email: false,
         };
-    }
+        const values = this._getValuesFromRequestBody(req.body, fields);
 
-    get () {
-        return async (req, res, next) => {
-            try {
-                await super.get(req, res);
-            } catch (e) {
-                next(e);
-            }
-        };
-    }
+        if (typeof values === 'string') {
+          return res
+            .status(404)
+            .send(`Field with name '${values}' is necessary`);
+        }
 
-    update () {
-        return async (req, res, next) => {
-            if (Object.hasOwn(req.body, 'email') && !emailValidator.validate(req.body.email)) {
-                return res.status(400).send('Email is incorrect');
-            }
+        validateEmail(req, res);
+        validatePhoneNumber('phoneNumber', req, res);
 
-            if (Object.hasOwn(req.body, 'phoneNumber') && !phone(req.body.phoneNumber).isValid) {
-                return res.status(400).send('Phone number is incorrect');
-            }
+        const query = sql
+          .insert(this._tableName, [
+            ...Object.keys(fields),
+            'booksAmount',
+            'whoAddID',
+            'isActive',
+            'additionDate',
+          ])
+          .values([...values, 0, user.id, accountStatus.ACTIVE, sql('NOW()')])
+          .toParams({ placeholder: '?' });
 
-            try {
-                await this.update(req, res);
-            } catch (e) {
-                next(e);
-            }
-        };
-    }
+        await connection.query(query.text, query.values);
 
-    returnBook () {
-        return async (req, res, next) => {
-            try {
-                const id = req.body.id;
-                const bookID = req.body.bookID;
+        res.status(200).json('ok');
+      } catch (e) {
+        next(e);
+      }
+    };
+  }
 
-                const queryGetHistory = sql
-                    .select()
-                    .from(dbTablesNames.GIVEN_BOOKS)
-                    .where(sql.and(sql.eq('readerID', id), sql.eq('bookID', bookID)))
-                    .toParams({ placeholder: '?' });
+  get() {
+    return async (req, res, next) => {
+      try {
+        await super.get(req, res);
+      } catch (e) {
+        next(e);
+      }
+    };
+  }
 
-                const historyRecords = (await connection.query(queryGetHistory.text, queryGetHistory.values))[0];
+  update() {
+    return async (req, res, next) => {
+      validateEmail(req, res);
+      validatePhoneNumber(req, res);
 
-                if (historyRecords.length <= 0) {
-                    return res.status(400).send(`Reader with id ${id} hasn't a book with id ${bookID}`);
-                }
+      try {
+        await this.update(req, res);
+      } catch (e) {
+        next(e);
+      }
+    };
+  }
 
-                const queryChangeReaderBooksAmount = sql
-                    .update(this._tableName)
-                    .set(sql('booksAmount = booksAmount - 1'))
-                    .where(sql.eq('id', id))
-                    .toParams({ placeholder: '?' });
+  returnBook() {
+    return async (req, res, next) => {
+      try {
+        const id = req.body.id;
+        const bookID = req.body.bookID;
 
-                await connection.query(queryChangeReaderBooksAmount.text, queryChangeReaderBooksAmount.values);
+        const queryGetHistory = sql
+          .select()
+          .from(dbTablesNames.GIVEN_BOOKS)
+          .where(sql.and(sql.eq('readerID', id), sql.eq('bookID', bookID)))
+          .toParams({ placeholder: '?' });
 
-                const queryChangeBooksAmount = sql
-                    .update(dbTablesNames.BOOKS)
-                    .set(sql('amount = amount + 1'))
-                    .where(sql.eq('id', bookID))
-                    .toParams({ placeholder: '?' });
+        const historyRecords = (
+          await connection.query(queryGetHistory.text, queryGetHistory.values)
+        )[0];
 
-                await connection.query(queryChangeBooksAmount.text, queryChangeBooksAmount.values);
+        if (historyRecords.length <= 0) {
+          return res
+            .status(400)
+            .send(`Reader with id ${id} hasn't a book with id ${bookID}`);
+        }
 
-                const deleteHistoryRecord = sql
-                    .delete(dbTablesNames.GIVEN_BOOKS)
-                    .where(sql.eq('id', historyRecords[0].id))
-                    .toParams({ placeholder: '?' });
+        const queryChangeReaderBooksAmount = sql
+          .update(this._tableName)
+          .set(sql('booksAmount = booksAmount - 1'))
+          .where(sql.eq('id', id))
+          .toParams({ placeholder: '?' });
 
-                await connection.query(deleteHistoryRecord.text, deleteHistoryRecord.values);
+        await connection.query(
+          queryChangeReaderBooksAmount.text,
+          queryChangeReaderBooksAmount.values
+        );
 
-                res.status(200).send('ok');
-            } catch (e) {
-                next(e);
-            }
-        };
-    }
+        const queryChangeBooksAmount = sql
+          .update(dbTablesNames.BOOKS)
+          .set(sql('amount = amount + 1'))
+          .where(sql.eq('id', bookID))
+          .toParams({ placeholder: '?' });
 
-    changeStatus () {
-        return async (req, res, next) => {
-            try {
-                await super.changeStatus(req, res);
-            } catch (e) {
-                next(e);
-            }
-        };
-    }
+        await connection.query(
+          queryChangeBooksAmount.text,
+          queryChangeBooksAmount.values
+        );
 
-    remove () {
-        return async (req, res, next) => {
-            try {
-                const query = sql
-                    .select(sql('COUNT(id) as gotBooks'))
-                    .from(dbTablesNames.GIVEN_BOOKS)
-                    .where(sql.eq('readerID', req.body.id))
-                    .toParams({ placeholder: '?' });
+        const deleteHistoryRecord = sql
+          .delete(dbTablesNames.GIVEN_BOOKS)
+          .where(sql.eq('id', historyRecords[0].id))
+          .toParams({ placeholder: '?' });
 
-                const gotBooks = (await connection.query(query.text, query.values))[0][0];
+        await connection.query(
+          deleteHistoryRecord.text,
+          deleteHistoryRecord.values
+        );
 
-                if (gotBooks > 0) {
-                    return res.status(400).send(`Reader with id ${req.body.id} didn't return all books`);
-                }
+        res.status(200).send('ok');
+      } catch (e) {
+        next(e);
+      }
+    };
+  }
 
-                await super.remove(req, res);
-            } catch (e) {
-                next(e);
-            }
-        };
-    }
+  changeStatus() {
+    return async (req, res, next) => {
+      try {
+        await super.changeStatus(req, res);
+      } catch (e) {
+        next(e);
+      }
+    };
+  }
+
+  remove() {
+    return async (req, res, next) => {
+      try {
+        const query = sql
+          .select(sql('COUNT(id) as gotBooks'))
+          .from(dbTablesNames.GIVEN_BOOKS)
+          .where(sql.eq('readerID', req.body.id))
+          .toParams({ placeholder: '?' });
+
+        const gotBooks = (
+          await connection.query(query.text, query.values)
+        )[0][0];
+
+        if (gotBooks > 0) {
+          return res
+            .status(400)
+            .send(`Reader with id ${req.body.id} didn't return all books`);
+        }
+
+        await super.remove(req, res);
+      } catch (e) {
+        next(e);
+      }
+    };
+  }
 }
 
 export const readersController = new ReadersController();

@@ -9,5 +9,13 @@ departmentsRouter.use(authenticate);
 
 departmentsRouter.post('/add', adminOnlyRule(), departmentsController.add());
 departmentsRouter.get('/get', adminOnlyRule(), departmentsController.get());
-departmentsRouter.put('/update', forManagerRule('id'), departmentsController.update());
-departmentsRouter.put('/remove', adminOnlyRule(), departmentsController.remove());
+departmentsRouter.put(
+  '/update',
+  forManagerRule('id'),
+  departmentsController.update()
+);
+departmentsRouter.put(
+  '/remove',
+  adminOnlyRule(),
+  departmentsController.remove()
+);

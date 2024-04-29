@@ -1,4 +1,4 @@
-import express from 'express';
+import * as express from 'express';
 import { booksController } from '../endpointsControllers/index.js';
 import { authenticate } from '../helpers/index.js';
 

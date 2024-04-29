@@ -5,183 +5,216 @@ import { dbTablesNames } from '../enums/index.js';
 import { DefaultController } from './defaultController.js';
 
 class BooksController extends DefaultController {
-    constructor () {
-        const updatableFields = ['title', 'author', 'amount'];
-        const searchableFields = ['title', 'author', 'departmentID'];
+  constructor() {
+    const updatableFields = ['title', 'author', 'amount'];
+    const searchableFields = ['title', 'author', 'departmentID'];
 
-        super(dbTablesNames.BOOKS, updatableFields, searchableFields);
-    }
+    super(dbTablesNames.BOOKS, updatableFields, searchableFields);
+  }
 
-    add () {
-        return async (req, res, next) => {
-            try {
-                if (!(await recordExist(req.body.departmentID, dbTablesNames.DEPARTMENTS))) {
-                    return res.status(400).send(`Department with ID ${req.body.departmentID} doesn't exist`);
-                }
+  add() {
+    return async (req, res, next) => {
+      try {
+        if (
+          !(await recordExist(req.body.departmentID, dbTablesNames.DEPARTMENTS))
+        ) {
+          return res
+            .status(400)
+            .send(`Department with ID ${req.body.departmentID} doesn't exist`);
+        }
 
-                const fields = { title: true, author: true, departmentID: true, amount: true };
-                const values = this._getValuesFromRequestBody(req.body, fields);
-
-                if (typeof values === 'string') {
-                    return res.status(404).send(`Field with name '${values}' is necessary`);
-                }
-
-                const query = sql
-                    .insert(this._tableName, Object.keys(fields))
-                    .values(values)
-                    .toParams({ placeholder: '?' });
-
-                await connection.query(query.text, query.values);
-
-                res.status(200).send('ok');
-            } catch (e) {
-                next(e);
-            }
+        const fields = {
+          title: true,
+          author: true,
+          departmentID: true,
+          amount: true,
         };
-    }
+        const values = this._getValuesFromRequestBody(req.body, fields);
 
-    get () {
-        return async (req, res, next) => {
-            try {
-                await super.get(res, req);
-            } catch (e) {
-                next(e);
-            }
-        };
-    }
+        if (typeof values === 'string') {
+          return res
+            .status(404)
+            .send(`Field with name '${values}' is necessary`);
+        }
 
-    givenAmount () {
-        return async (req, res, next) => {
-            try {
-                const id = req.body.id;
+        const query = sql
+          .insert(this._tableName, Object.keys(fields))
+          .values(values)
+          .toParams({ placeholder: '?' });
 
-                const query = sql
-                    .select(sql('COUNT(id) as givenAmount'))
-                    .from(dbTablesNames.GIVEN_BOOKS)
-                    .where(sql.eq('bookID', id))
-                    .toParams({ placeholder: '?' });
+        await connection.query(query.text, query.values);
 
-                const givenAmount = (await connection.query(query.text, query.values))[0][0];
+        res.status(200).send('ok');
+      } catch (e) {
+        next(e);
+      }
+    };
+  }
 
-                res.status(200).json(givenAmount);
-            } catch (e) {
-                next(e);
-            }
-        };
-    }
+  get() {
+    return async (req, res, next) => {
+      try {
+        await super.get(res, req);
+      } catch (e) {
+        next(e);
+      }
+    };
+  }
 
-    update () {
-        return async (req, res, next) => {
-            try {
-                if (req.amount < 0) {
-                    return res.status(400).send('Amount must be great than 0');
-                }
+  givenAmount() {
+    return async (req, res, next) => {
+      try {
+        const id = req.body.id;
 
-                await super.update(req, res);
-            } catch (e) {
-                next(e);
-            }
-        };
-    }
+        const query = sql
+          .select(sql('COUNT(id) as givenAmount'))
+          .from(dbTablesNames.GIVEN_BOOKS)
+          .where(sql.eq('bookID', id))
+          .toParams({ placeholder: '?' });
 
-    giveToReader () {
-        return async (req, res, next) => {
-            try {
-                const id = req.body.bookID;
-                const readerID = req.body.readerID;
-                const user = await getUserBySession(req.body.sessionID);
+        const givenAmount = (
+          await connection.query(query.text, query.values)
+        )[0][0];
 
-                if (!(await recordExist(id, this._tableName))) {
-                    return res.status(404).send(`Book with ID ${id} doesn't exist`);
-                }
+        res.status(200).json(givenAmount);
+      } catch (e) {
+        next(e);
+      }
+    };
+  }
 
-                if (!(await recordExist(readerID, dbTablesNames.READERS))) {
-                    return res.status(404).send(`Reader with ID ${readerID} doesn't exist`);
-                }
+  update() {
+    return async (req, res, next) => {
+      try {
+        if (req.amount < 0) {
+          return res.status(400).send('Amount must be great than 0');
+        }
 
-                const queryGetBook = sql
-                    .select()
-                    .from(this._tableName)
-                    .where(sql.eq('id', id))
-                    .toParams({ placeholder: '?' });
+        await super.update(req, res);
+      } catch (e) {
+        next(e);
+      }
+    };
+  }
 
-                const book = (await connection.query(queryGetBook.text, queryGetBook.values))[0][0];
+  giveToReader() {
+    return async (req, res, next) => {
+      try {
+        const id = req.body.bookID;
+        const readerID = req.body.readerID;
+        const user = await getUserBySession(req.body.sessionID);
 
-                if (book.amount - 1 < 0) {
-                    return res.status(400).send(`Amount of books with title '${book.title} is 0'`);
-                }
+        if (!(await recordExist(id, this._tableName))) {
+          return res.status(404).send(`Book with ID ${id} doesn't exist`);
+        }
 
-                const queryGetReader = sql
-                    .select()
-                    .from(dbTablesNames.READERS)
-                    .where(sql.eq('id', readerID))
-                    .toParams({ placeholder: '?' });
+        if (!(await recordExist(readerID, dbTablesNames.READERS))) {
+          return res
+            .status(404)
+            .send(`Reader with ID ${readerID} doesn't exist`);
+        }
 
-                const reader = (await connection.query(queryGetReader.text, queryGetReader.values)[0][0]);
+        const queryGetBook = sql
+          .select()
+          .from(this._tableName)
+          .where(sql.eq('id', id))
+          .toParams({ placeholder: '?' });
 
-                if (reader.booksAmount >= MAX_BOOKS_FOR_READER) {
-                    return res.status(400).send('Reader has maximum of books');
-                }
+        const book = (
+          await connection.query(queryGetBook.text, queryGetBook.values)
+        )[0][0];
 
-                if (!reader.isActive) {
-                    return res.status(400).send(`Reader with id ${readerID} is blocked`);
-                }
+        if (book.amount - 1 < 0) {
+          return res
+            .status(400)
+            .send(`Amount of books with title '${book.title} is 0'`);
+        }
 
-                const queryChangeBookAmountInDepartment = sql
-                    .update(this._tableName)
-                    .set({ amount: book.amount - 1 })
-                    .toParams({ placeholder: '?' });
+        const queryGetReader = sql
+          .select()
+          .from(dbTablesNames.READERS)
+          .where(sql.eq('id', readerID))
+          .toParams({ placeholder: '?' });
 
-                await connection.query(queryChangeBookAmountInDepartment.text, queryChangeBookAmountInDepartment.values);
+        const reader = await connection.query(
+          queryGetReader.text,
+          queryGetReader.values
+        )[0][0];
 
-                const queryChangeBookAmountThatHasReader = sql
-                    .update(dbTablesNames.READERS)
-                    .set({ booksAmount: reader.booksAmount + 1 })
-                    .toParams({ placeholder: '?' });
+        if (reader.booksAmount >= MAX_BOOKS_FOR_READER) {
+          return res.status(400).send('Reader has maximum of books');
+        }
 
-                await connection.query(queryChangeBookAmountThatHasReader.text, queryChangeBookAmountThatHasReader.values);
+        if (!reader.isActive) {
+          return res.status(400).send(`Reader with id ${readerID} is blocked`);
+        }
 
-                const queryInsertToGivenBooks = sql
-                    .insert(dbTablesNames.GIVEN_BOOKS)
-                    .values({
-                        bookID: id,
-                        readerID,
-                        employeeID: user.id,
-                        departmentID: book.departmentID,
-                        dateAndTime: sql('NOW()')
-                    })
-                    .toParams({ placeholder: '?' });
+        const queryChangeBookAmountInDepartment = sql
+          .update(this._tableName)
+          .set({ amount: book.amount - 1 })
+          .toParams({ placeholder: '?' });
 
-                await connection.query(queryInsertToGivenBooks.text, queryInsertToGivenBooks.values);
+        await connection.query(
+          queryChangeBookAmountInDepartment.text,
+          queryChangeBookAmountInDepartment.values
+        );
 
-                res.status(200).send('ok');
-            } catch (e) {
-                next(e);
-            }
-        };
-    }
+        const queryChangeBookAmountThatHasReader = sql
+          .update(dbTablesNames.READERS)
+          .set({ booksAmount: reader.booksAmount + 1 })
+          .toParams({ placeholder: '?' });
 
-    remove () {
-        return async (req, res, next) => {
-            try {
-                const queryGivenBooks = sql
-                    .select(sql('COUNT(id) as givenBooks'))
-                    .from(dbTablesNames.GIVEN_BOOKS)
-                    .where(sql.eq('bookID', req.body.id))
-                    .toParams({ placeholder: '?' });
+        await connection.query(
+          queryChangeBookAmountThatHasReader.text,
+          queryChangeBookAmountThatHasReader.values
+        );
 
-                const givenBooks = (await connection.query(queryGivenBooks.text, queryGivenBooks.values))[0][0];
+        const queryInsertToGivenBooks = sql
+          .insert(dbTablesNames.GIVEN_BOOKS)
+          .values({
+            bookID: id,
+            readerID,
+            employeeID: user.id,
+            departmentID: book.departmentID,
+            dateAndTime: sql('NOW()'),
+          })
+          .toParams({ placeholder: '?' });
 
-                if (givenBooks > 0) {
-                    return res.status(400).send('Not all of the books was returned');
-                }
+        await connection.query(
+          queryInsertToGivenBooks.text,
+          queryInsertToGivenBooks.values
+        );
 
-                await super.remove(req, res);
-            } catch (e) {
-                next(e);
-            }
-        };
-    }
+        res.status(200).send('ok');
+      } catch (e) {
+        next(e);
+      }
+    };
+  }
+
+  remove() {
+    return async (req, res, next) => {
+      try {
+        const queryGivenBooks = sql
+          .select(sql('COUNT(id) as givenBooks'))
+          .from(dbTablesNames.GIVEN_BOOKS)
+          .where(sql.eq('bookID', req.body.id))
+          .toParams({ placeholder: '?' });
+
+        const givenBooks = (
+          await connection.query(queryGivenBooks.text, queryGivenBooks.values)
+        )[0][0];
+
+        if (givenBooks > 0) {
+          return res.status(400).send('Not all of the books was returned');
+        }
+
+        await super.remove(req, res);
+      } catch (e) {
+        next(e);
+      }
+    };
+  }
 }
 
 export const booksController = new BooksController();
