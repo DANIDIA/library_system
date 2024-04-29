@@ -1,5 +1,5 @@
-import { connection, getUserBySession, recordExist } from '../Helpers/index.js';
-import { MAX_BOOKS_FOR_READER } from '../Helpers/constants.js';
+import { connection, getUserBySession, recordExist } from '../helpers/index.js';
+import { MAX_BOOKS_FOR_READER } from '../helpers/constants.js';
 import { DefaultController } from './defaultController.js';
 import sql from 'mysql-bricks';
 import { dbTablesNames } from '../enums/index.js';

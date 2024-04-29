@@ -1,4 +1,4 @@
-import { connection, recordExist } from '../Helpers/index.js';
+import { connection, recordExist } from '../helpers/index.js';
 import sql from 'mysql-bricks';
 import { accountStatus, dbTablesNames } from '../enums/index.js';
 

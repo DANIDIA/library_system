@@ -1,6 +1,6 @@
 import express from 'express';
-import { authenticate } from '../Helpers/index.js';
-import { usersController } from '../EndpointsControllers/index.js';
+import { authenticate } from '../helpers/index.js';
+import { usersController } from '../endpointsControllers/index.js';
 import { forManagerRule } from '../accessRules/index.js';
 
 export const usersRouter = express.Router();

@@ -1,6 +1,6 @@
 import express from 'express';
-import { booksController } from '../EndpointsControllers/index.js';
-import { authenticate } from '../Helpers/index.js';
+import { booksController } from '../endpointsControllers/index.js';
+import { authenticate } from '../helpers/index.js';
 
 export const booksRouter = express.Router();
 

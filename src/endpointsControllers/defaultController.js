@@ -1,4 +1,4 @@
-import { connection, endAllUserSessions } from '../Helpers/index.js';
+import { connection, endAllUserSessions } from '../helpers/index.js';
 import sql from 'mysql-bricks';
 import { accountStatus } from '../enums/index.js';
 

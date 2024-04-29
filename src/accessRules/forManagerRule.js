@@ -1,4 +1,4 @@
-import { getUserBySession } from '../Helpers/index.js';
+import { getUserBySession } from '../helpers/index.js';
 import { role as roles } from '../enums/index.js';
 
 export function forManagerRule (departmentIDField) {

@@ -1,5 +1,5 @@
 import { DefaultController } from './defaultController.js';
-import { connection, recordExist } from '../Helpers/index.js';
+import { connection, recordExist } from '../helpers/index.js';
 import sql from 'mysql-bricks';
 import { dbTablesNames } from '../enums/index.js';
 

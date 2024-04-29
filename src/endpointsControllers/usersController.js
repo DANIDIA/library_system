@@ -1,7 +1,7 @@
 import { DefaultController } from './defaultController.js';
 import { accountStatus, dbTablesNames, role } from '../enums/index.js';
 import sql from 'mysql-bricks';
-import { connection, recordExist } from '../Helpers/index.js';
+import { connection, recordExist } from '../helpers/index.js';
 
 class UsersController extends DefaultController {
     constructor () {

@@ -1,4 +1,4 @@
-import { connection, getUserBySession } from '../Helpers/index.js';
+import { connection, getUserBySession } from '../helpers/index.js';
 import { accountStatus, dbTablesNames } from '../enums/index.js';
 import { DefaultController } from './defaultController.js';
 import sql from 'mysql-bricks';

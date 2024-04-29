@@ -1,6 +1,6 @@
 import express from 'express';
-import { authenticate } from '../Helpers/index.js';
-import { departmentsController } from '../EndpointsControllers/index.js';
+import { authenticate } from '../helpers/index.js';
+import { departmentsController } from '../endpointsControllers/index.js';
 import { adminOnlyRule, forManagerRule } from '../accessRules/index.js';
 
 export const departmentsRouter = express.Router();
