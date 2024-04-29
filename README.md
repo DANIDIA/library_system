@@ -6,13 +6,13 @@
 - [x] Rewrite a get/return books system
 - [x] Rewrite authentication
 - [x] Rewrite roles system
-- [ ] Make blocking system for employees and readers
+- [x] Make blocking system for employees and readers
 
 #### Changes
-- [ ] Rewrite massages that returns server and change status codes
-- [ ] Improve naming
+- [x] Rewrite massages that returns server and change status codes
+- [x] Improve naming
 - [x] Create enum with DB tables names
 
 #### Additionally
-- [ ] E-mail validation
-- [ ] Password and login generation
+- [x] E-mail validation
+- [x] Password and login generation
