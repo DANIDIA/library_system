@@ -1,12 +1,25 @@
 import express from 'express';
-import { bookRouter, readerRouter, userRouter } from './src/index.js';
+import {
+  booksRouter,
+  readersRouter,
+  sessionsRouter,
+  departmentsRouter,
+  usersRouter,
+} from './src/index.js';
 
 const PORT = 5000;
 
+console.log('Server starts...');
+
 const app = express();
 app.use(express.json());
-app.use('/user', userRouter);
-app.use('/reader', readerRouter);
-app.use('/book', bookRouter);
+app.use('/sessions', sessionsRouter);
+app.use('/readers', readersRouter);
+app.use('/books', booksRouter);
+app.use('/users', usersRouter);
+app.use('/departments', departmentsRouter);
 
-app.listen(PORT, () => console.log('SERVER STARTS'));
+// ToDo: #3: This middleware doesn't work.
+// app.use(handleEndpointsErrors);
+
+app.listen(PORT, () => console.log('Server is listening on port ' + PORT));

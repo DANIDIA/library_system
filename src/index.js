@@ -1,2 +1,3 @@
-export * from './EndpointsControllers/index.js';
-export * from './Routers/index.js';
+export * from './endpointsControllers/index.js';
+export * from './routers/index.js';
+export * from './helpers/index.js';

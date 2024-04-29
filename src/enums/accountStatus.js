@@ -1,4 +1,4 @@
 export const accountStatus = {
-    BLOCKED: 'BLC',
-    ACTIVE: 'ACT'
+  BLOCKED: 0,
+  ACTIVE: 1,
 };
