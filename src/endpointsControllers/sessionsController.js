@@ -13,7 +13,7 @@ class SessionsController {
 
             const users = (await connection.query(queryCheck.text, queryCheck.values))[0];
 
-            if (users.length < 0) {
+            if (users.length <= 0) {
                 return res.status(401).send('Unauthorized');
             }
 
@@ -29,7 +29,7 @@ class SessionsController {
                 })
                 .toParams({ placeholder: '?' });
 
-            const value = (await connection.query(queryInsertSession.text, queryInsertSession.values));
+            const value = (await connection.query(queryInsertSession.text, queryInsertSession.values))[0];
 
             res.status(200).json({ sessionID: value.insertId });
         } catch (e) {
