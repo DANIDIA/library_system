@@ -20,10 +20,16 @@ export async function getSessionStatus (sessionID) {
  * @param{string} sessionID
  * */
 export async function getUserBySession (sessionID) {
-    const [users] = await connection.query(
-        'SELECT employee_account.* FROM employee_account INNER JOIN session ON employee_account.id = session.employee_id where session.id = ?',
-        [sessionID]
-    );
+    const query = sql
+        .select(sql(`${dbTablesNames.EMPLOYEES}.*`))
+        .from(dbTablesNames.EMPLOYEES)
+        .innerJoin(
+            dbTablesNames.ACTIVE_SESSIONS,
+            { [`${dbTablesNames.EMPLOYEES}.id`]: `${dbTablesNames.ACTIVE_SESSIONS}.employeeID` })
+        .where(sql.eq(`${dbTablesNames.ACTIVE_SESSIONS}.id`, sessionID))
+        .toParams({ placeholder: '?' });
+
+    const [users] = await connection.query(query.text, query.values);
 
     return users[0];
 }
