@@ -105,13 +105,17 @@ export class DefaultController {
      *  all of necessary values was in body
      */
     _getValuesFromRequestBody (body, fieldsNames) {
-        const result = [];
+        let result = [];
 
-        for (const name in Object.keys(fieldsNames)) {
-            if (fieldsNames[name] || !Object.hasOwn(body, name)) { return name; }
-
-            result.push(body[name]);
-        }
+        Object.keys(fieldsNames).some(name => {
+            if (fieldsNames[name] && !Object.hasOwn(body, name)) {
+                result = name;
+                return true;
+            } else {
+                result.push(body[name]);
+                return false;
+            }
+        });
 
         return result;
     }

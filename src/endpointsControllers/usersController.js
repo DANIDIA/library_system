@@ -35,7 +35,7 @@ class UsersController extends DefaultController {
                     return res.status(404).send(`Department with id ${req.body.departmentID} doesn't exist`);
                 }
 
-                if (!Object.values(role).includes(req.body.role)) {
+                if (!Object.values(role).includes(+req.body.role)) {
                     return res.status(404).send(`Role with id ${req.body.role} doesn't exist`);
                 }
 
@@ -43,7 +43,7 @@ class UsersController extends DefaultController {
                     return res.status(400).send('Email is incorrect');
                 }
 
-                if (!phone(req.body.phoneNumber).isValid) {
+                if (!phone.phone(req.body.phoneNumber).isValid) {
                     return res.status(400).send('Phone number is incorrect');
                 }
 
@@ -51,7 +51,6 @@ class UsersController extends DefaultController {
                 const password = passwordGenerator.generate({
                     length: 10,
                     numbers: true,
-                    symbols: true,
                     uppercase: true,
                     lowercase: true
                 });
