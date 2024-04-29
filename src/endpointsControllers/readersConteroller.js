@@ -1,7 +1,7 @@
+import sql from 'mysql-bricks';
 import { connection, getUserBySession } from '../helpers/index.js';
 import { accountStatus, dbTablesNames } from '../enums/index.js';
 import { DefaultController } from './defaultController.js';
-import sql from 'mysql-bricks';
 
 class ReadersController extends DefaultController {
     constructor () {

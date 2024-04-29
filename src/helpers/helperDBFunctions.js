@@ -1,6 +1,6 @@
+import sql from 'mysql-bricks';
 import { connection } from './database.js';
 import { dbTablesNames, sessionStatus } from '../enums/index.js';
-import sql from 'mysql-bricks';
 
 /**
  * @param{string} sessionID

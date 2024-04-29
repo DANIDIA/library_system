@@ -1,5 +1,5 @@
-import { connection, endAllUserSessions } from '../helpers/index.js';
 import sql from 'mysql-bricks';
+import { connection, endAllUserSessions } from '../helpers/index.js';
 import { accountStatus } from '../enums/index.js';
 
 export class DefaultController {
