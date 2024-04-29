@@ -2,18 +2,16 @@ import sql from 'mysql-bricks';
 import { connection } from './database.js';
 import { dbTablesNames, sessionStatus } from '../enums/index.js';
 
-/**
- * @param{string} sessionID
- * */
 export async function getSessionStatus (sessionID) {
-    const [sessions] = await connection.query(
-        'SELECT end FROM session WHERE id = ?',
-        [sessionID]
-    );
+    const query = sql
+        .select()
+        .from(dbTablesNames.ACTIVE_SESSIONS)
+        .where(sql.eq('id', sessionID))
+        .toParams({ placeholder: '?' });
+
+    const [sessions] = await connection.query(query.text, query.values);
 
     if (sessions.length === 0) { return sessionStatus.NOT_EXIST; }
-
-    if (sessions[0].end != null) { return sessionStatus.IS_ENDED; }
 
     return sessionStatus.IS_ACTIVE;
 }
