@@ -77,7 +77,7 @@ class BooksController extends DefaultController {
                     return res.status(400).send('Amount must be great than 0');
                 }
 
-                await super.update()(req, res);
+                await super.update(req, res);
             } catch (e) {
                 next(e);
             }
@@ -172,7 +172,7 @@ class BooksController extends DefaultController {
                     return res.status(400).send('Not all of the books was returned');
                 }
 
-                await super.remove()(req, res);
+                await super.remove(req, res);
             } catch (e) {
                 next(e);
             }
