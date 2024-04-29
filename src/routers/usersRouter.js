@@ -9,6 +9,6 @@ usersRouter.use(authenticate);
 usersRouter.use(forManagerRule('departmentID'));
 
 usersRouter.post('/add', usersController.add());
-usersRouter.post('/get', usersController.get());
-usersRouter.post('/update', usersController.update());
-usersRouter.post('/change_status', usersController.changeStatus());
+usersRouter.get('/get', usersController.get());
+usersRouter.put('/update', usersController.update());
+usersRouter.put('/change_status', usersController.changeStatus());
