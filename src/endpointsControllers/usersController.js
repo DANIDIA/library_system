@@ -1,6 +1,7 @@
 import sql from 'mysql-bricks';
 import emailValidator from 'email-validator';
 import phone from 'phone';
+import passwordGenerator from 'generate-password';
 import { DefaultController } from './defaultController.js';
 import { accountStatus, dbTablesNames, role } from '../enums/index.js';
 import { connection, recordExist } from '../helpers/index.js';
@@ -47,7 +48,13 @@ class UsersController extends DefaultController {
                 }
 
                 const login = req.body.name + req.body.surname;
-                const password = '123456';
+                const password = passwordGenerator.generate({
+                    length: 10,
+                    numbers: true,
+                    symbols: true,
+                    uppercase: true,
+                    lowercase: true
+                });
 
                 const query = sql
                     .insert(this._tableName,
