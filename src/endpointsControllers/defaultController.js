@@ -45,11 +45,11 @@ export class DefaultController {
     const id = req.body.id;
     const valuesToChange = {};
 
-    for (const field in this._updatableFields) {
+    this._updatableFields.forEach((field) => {
       if (Object.hasOwn(req.body, field)) {
         valuesToChange[field] = req.body[field];
       }
-    }
+    });
 
     const query = sql
       .update(this._tableName)
