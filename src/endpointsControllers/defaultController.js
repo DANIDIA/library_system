@@ -13,16 +13,16 @@ export class DefaultController {
     let query = sql.select().from(this._tableName);
     let condition;
 
-    for (const field in this._serchableFields) {
+    this._serchableFields.forEach((field) => {
       if (Object.hasOwn(req.body, field)) {
         const fieldEq = sql.eq(field, req.body[field]);
 
         condition = condition ? sql.and(condition, fieldEq) : fieldEq;
       }
-    }
+    });
 
     if (Object.hasOwn(req.body, 'fromRecordID')) {
-      const fromRecordIdGte = sql.gte('fromRecordID', req.body.fromRecordID);
+      const fromRecordIdGte = sql.gte('id', req.body.fromRecordID);
 
       condition = condition
         ? sql.and(condition, fromRecordIdGte)
