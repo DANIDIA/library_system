@@ -69,12 +69,12 @@ class ReadersController extends DefaultController {
 
   update() {
     return async (req, res, next) => {
-      if (validateEmail(req, res) || validatePhoneNumber(req, res)) {
-        return;
-      }
-
       try {
-        await this.update(req, res);
+        if (validateEmail(req, res) || validatePhoneNumber(req, res)) {
+          return;
+        }
+
+        await super.update(req, res);
       } catch (e) {
         next(e);
       }
