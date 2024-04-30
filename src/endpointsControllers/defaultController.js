@@ -66,11 +66,11 @@ export class DefaultController {
     const id = req.body.id;
 
     if (!Object.hasOwn(req.body, 'isActive')) {
-      res.status(400).send('No isActive field');
+      return res.status(400).send('No isActive field');
     }
 
     if (typeof req.body.isActive !== 'boolean') {
-      res.status(400).send('Invalid value for isActive field');
+      return res.status(400).send('Invalid value for isActive field');
     }
 
     const isActive = req.body.isActive
