@@ -100,7 +100,7 @@ class BooksController extends DefaultController {
   giveToReader() {
     return async (req, res, next) => {
       try {
-        const id = req.body.bookID;
+        const id = req.body.id;
         const readerID = req.body.readerID;
         const user = await getUserBySession(req.body.sessionID);
 
@@ -136,9 +136,8 @@ class BooksController extends DefaultController {
           .where(sql.eq('id', readerID))
           .toParams({ placeholder: '?' });
 
-        const reader = await connection.query(
-          queryGetReader.text,
-          queryGetReader.values
+        const reader = (
+          await connection.query(queryGetReader.text, queryGetReader.values)
         )[0][0];
 
         if (reader.booksAmount >= MAX_BOOKS_FOR_READER) {
@@ -152,6 +151,7 @@ class BooksController extends DefaultController {
         const queryChangeBookAmountInDepartment = sql
           .update(this._tableName)
           .set({ amount: book.amount - 1 })
+          .where(sql.eq('id', id))
           .toParams({ placeholder: '?' });
 
         await connection.query(
@@ -162,6 +162,7 @@ class BooksController extends DefaultController {
         const queryChangeBookAmountThatHasReader = sql
           .update(dbTablesNames.READERS)
           .set({ booksAmount: reader.booksAmount + 1 })
+          .where(sql.eq('id', readerID))
           .toParams({ placeholder: '?' });
 
         await connection.query(
