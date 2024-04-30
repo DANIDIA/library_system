@@ -51,13 +51,15 @@ export class DefaultController {
       }
     });
 
-    const query = sql
-      .update(this._tableName)
-      .set(valuesToChange)
-      .where(sql.eq('id', id))
-      .toParams({ placeholder: '?' });
+    if (Object.keys(valuesToChange).length > 0) {
+      const query = sql
+        .update(this._tableName)
+        .set(valuesToChange)
+        .where(sql.eq('id', id))
+        .toParams({ placeholder: '?' });
 
-    await connection.query(query.text, query.values);
+      await connection.query(query.text, query.values);
+    }
 
     res.status(200).send('ok');
   }
