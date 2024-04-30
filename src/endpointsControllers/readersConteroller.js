@@ -33,8 +33,9 @@ class ReadersController extends DefaultController {
             .send(`Field with name '${values}' is necessary`);
         }
 
-        validateEmail(req, res);
-        validatePhoneNumber('phoneNumber', req, res);
+        if (validateEmail(req, res) || validatePhoneNumber(req, res)) {
+          return;
+        }
 
         const query = sql
           .insert(this._tableName, [
@@ -68,8 +69,9 @@ class ReadersController extends DefaultController {
 
   update() {
     return async (req, res, next) => {
-      validateEmail(req, res);
-      validatePhoneNumber(req, res);
+      if (validateEmail(req, res) || validatePhoneNumber(req, res)) {
+        return;
+      }
 
       try {
         await this.update(req, res);

@@ -66,8 +66,9 @@ class UsersController extends DefaultController {
             .send(`Role with id ${req.body.role} doesn't exist`);
         }
 
-        validateEmail(req, res);
-        validatePhoneNumber(req, res);
+        if (validateEmail(req, res) || validatePhoneNumber(req, res)) {
+          return;
+        }
 
         const login = req.body.name + req.body.surname;
         const password = passwordGenerator.generate({
