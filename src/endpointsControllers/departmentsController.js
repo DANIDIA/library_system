@@ -107,51 +107,44 @@ export class DepartmentsController extends DefaultController {
     return async (req, res, next) => {
       try {
         const queryGetBooksAmount = sql
-          .select(sql('COUNT(id)'))
+          .select(sql('COUNT(id) as amount'))
           .from(dbTablesNames.BOOKS)
           .where(sql.eq('departmentID', req.body.id))
           .toParams({ placeholder: '?' });
 
-        const booksAmount = (
+        const books = (
           await connection.query(
             queryGetBooksAmount.text,
             queryGetBooksAmount.values
           )
         )[0][0];
 
-        if (booksAmount > 0) {
+        if (books.amount > 0) {
           return res
             .status(400)
             .send(`There are books in department with id ${req.res.id}`);
         }
 
         const queryGetEmployeesAmount = sql
-          .select(sql('COUNT(id)'))
+          .select(sql('COUNT(id) as amount'))
           .from(dbTablesNames.EMPLOYEES)
           .where(sql.eq('departmentID', req.body.id))
           .toParams({ placeholder: '?' });
 
-        const employeesAmount = (
+        const employees = (
           await connection.query(
             queryGetEmployeesAmount.text,
             queryGetBooksAmount.values
           )
         )[0][0];
 
-        if (employeesAmount > 0) {
+        if (employees.amount > 0) {
           return res
             .status(400)
             .send(`There are employees in department with id ${req.res.id}`);
         }
 
-        const queryRemove = sql
-          .delete(this._tableName)
-          .where(sql.eq('id', req.body.id))
-          .toParams({ placeholder: '?' });
-
-        await connection.query(queryRemove.text, queryRemove.values);
-
-        res.status(200).send('ok');
+        await super.remove(req, res);
       } catch (e) {
         next(e);
       }
