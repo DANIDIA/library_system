@@ -197,7 +197,7 @@ class BooksController extends DefaultController {
     return async (req, res, next) => {
       try {
         const queryGivenBooks = sql
-          .select(sql('COUNT(id) as givenBooks'))
+          .select(sql('COUNT(id) as amount'))
           .from(dbTablesNames.GIVEN_BOOKS)
           .where(sql.eq('bookID', req.body.id))
           .toParams({ placeholder: '?' });
@@ -206,7 +206,7 @@ class BooksController extends DefaultController {
           await connection.query(queryGivenBooks.text, queryGivenBooks.values)
         )[0][0];
 
-        if (givenBooks > 0) {
+        if (givenBooks.amount > 0) {
           return res.status(400).send('Not all of the books was returned');
         }
 
