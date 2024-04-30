@@ -105,7 +105,7 @@ class ReadersController extends DefaultController {
 
         const queryChangeReaderBooksAmount = sql
           .update(this._tableName)
-          .set(sql('booksAmount = booksAmount - 1'))
+          .set('booksAmount', sql('booksAmount - 1'))
           .where(sql.eq('id', id))
           .toParams({ placeholder: '?' });
 
@@ -116,7 +116,7 @@ class ReadersController extends DefaultController {
 
         const queryChangeBooksAmount = sql
           .update(dbTablesNames.BOOKS)
-          .set(sql('amount = amount + 1'))
+          .set('amount', sql('amount + 1'))
           .where(sql.eq('id', bookID))
           .toParams({ placeholder: '?' });
 
