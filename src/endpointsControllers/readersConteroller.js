@@ -33,8 +33,9 @@ class ReadersController extends DefaultController {
             .send(`Field with name '${values}' is necessary`);
         }
 
-        validateEmail(req, res);
-        validatePhoneNumber('phoneNumber', req, res);
+        if (validateEmail(req, res) || validatePhoneNumber(req, res)) {
+          return;
+        }
 
         const query = sql
           .insert(this._tableName, [
@@ -68,11 +69,12 @@ class ReadersController extends DefaultController {
 
   update() {
     return async (req, res, next) => {
-      validateEmail(req, res);
-      validatePhoneNumber(req, res);
-
       try {
-        await this.update(req, res);
+        if (validateEmail(req, res) || validatePhoneNumber(req, res)) {
+          return;
+        }
+
+        await super.update(req, res);
       } catch (e) {
         next(e);
       }
@@ -103,7 +105,7 @@ class ReadersController extends DefaultController {
 
         const queryChangeReaderBooksAmount = sql
           .update(this._tableName)
-          .set(sql('booksAmount = booksAmount - 1'))
+          .set('booksAmount', sql('booksAmount - 1'))
           .where(sql.eq('id', id))
           .toParams({ placeholder: '?' });
 
@@ -114,7 +116,7 @@ class ReadersController extends DefaultController {
 
         const queryChangeBooksAmount = sql
           .update(dbTablesNames.BOOKS)
-          .set(sql('amount = amount + 1'))
+          .set('amount', sql('amount + 1'))
           .where(sql.eq('id', bookID))
           .toParams({ placeholder: '?' });
 
@@ -154,7 +156,7 @@ class ReadersController extends DefaultController {
     return async (req, res, next) => {
       try {
         const query = sql
-          .select(sql('COUNT(id) as gotBooks'))
+          .select(sql('COUNT(id) as amount'))
           .from(dbTablesNames.GIVEN_BOOKS)
           .where(sql.eq('readerID', req.body.id))
           .toParams({ placeholder: '?' });
@@ -163,7 +165,7 @@ class ReadersController extends DefaultController {
           await connection.query(query.text, query.values)
         )[0][0];
 
-        if (gotBooks > 0) {
+        if (gotBooks.amount > 0) {
           return res
             .status(400)
             .send(`Reader with id ${req.body.id} didn't return all books`);

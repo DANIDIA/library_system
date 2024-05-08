@@ -10,7 +10,7 @@ const CONFIG = {
   phoneNumber: {
     fieldName: 'phoneNumber',
     errorMessage: 'Phone number is incorrect',
-    validator: phoneValidator,
+    validator: { validate: (value) => phoneValidator.phone(value).isValid },
   },
 };
 

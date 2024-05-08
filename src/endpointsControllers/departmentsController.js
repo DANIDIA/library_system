@@ -1,8 +1,8 @@
 import sql from 'mysql-bricks';
-import phone from 'phone';
 import { DefaultController } from './defaultController.js';
 import { connection, recordExist } from '../helpers/index.js';
 import { dbTablesNames } from '../enums/index.js';
+import { validatePhoneNumber } from '../helpers/contactDetailsValidators.js';
 
 export class DepartmentsController extends DefaultController {
   constructor() {
@@ -50,8 +50,8 @@ export class DepartmentsController extends DefaultController {
             .send(`Field with name '${values}' is necessary`);
         }
 
-        if (!phone(req.body.contactNumber).isValid) {
-          return res.status(400).send('Number phone is incorrect');
+        if (validatePhoneNumber(req, res)) {
+          return;
         }
 
         const query = sql
@@ -92,11 +92,8 @@ export class DepartmentsController extends DefaultController {
             .send(`Department manager with id ${managerID} doesn't exist`);
         }
 
-        if (
-          Object.hasOwn(req.body, 'contactNumber') &&
-          !phone(req.body.contactNumber).isValid
-        ) {
-          return res.status(400).send('Number phone is incorrect');
+        if (validatePhoneNumber(req, res)) {
+          return;
         }
 
         await super.update(req, res);
@@ -110,51 +107,44 @@ export class DepartmentsController extends DefaultController {
     return async (req, res, next) => {
       try {
         const queryGetBooksAmount = sql
-          .select(sql('COUNT(id)'))
+          .select(sql('COUNT(id) as amount'))
           .from(dbTablesNames.BOOKS)
           .where(sql.eq('departmentID', req.body.id))
           .toParams({ placeholder: '?' });
 
-        const booksAmount = (
+        const books = (
           await connection.query(
             queryGetBooksAmount.text,
             queryGetBooksAmount.values
           )
         )[0][0];
 
-        if (booksAmount > 0) {
+        if (books.amount > 0) {
           return res
             .status(400)
             .send(`There are books in department with id ${req.res.id}`);
         }
 
         const queryGetEmployeesAmount = sql
-          .select(sql('COUNT(id)'))
+          .select(sql('COUNT(id) as amount'))
           .from(dbTablesNames.EMPLOYEES)
           .where(sql.eq('departmentID', req.body.id))
           .toParams({ placeholder: '?' });
 
-        const employeesAmount = (
+        const employees = (
           await connection.query(
             queryGetEmployeesAmount.text,
             queryGetBooksAmount.values
           )
         )[0][0];
 
-        if (employeesAmount > 0) {
+        if (employees.amount > 0) {
           return res
             .status(400)
             .send(`There are employees in department with id ${req.res.id}`);
         }
 
-        const queryRemove = sql
-          .delete(this._tableName)
-          .where(sql.eq('id', req.body.id))
-          .toParams({ placeholder: '?' });
-
-        await connection.query(queryRemove.text, queryRemove.values);
-
-        res.status(200).send('ok');
+        await super.remove(req, res);
       } catch (e) {
         next(e);
       }

@@ -13,16 +13,16 @@ export class DefaultController {
     let query = sql.select().from(this._tableName);
     let condition;
 
-    for (const field in this._serchableFields) {
+    this._serchableFields.forEach((field) => {
       if (Object.hasOwn(req.body, field)) {
         const fieldEq = sql.eq(field, req.body[field]);
 
         condition = condition ? sql.and(condition, fieldEq) : fieldEq;
       }
-    }
+    });
 
     if (Object.hasOwn(req.body, 'fromRecordID')) {
-      const fromRecordIdGte = sql.gte('fromRecordID', req.body.fromRecordID);
+      const fromRecordIdGte = sql.gte('id', req.body.fromRecordID);
 
       condition = condition
         ? sql.and(condition, fromRecordIdGte)
@@ -45,19 +45,21 @@ export class DefaultController {
     const id = req.body.id;
     const valuesToChange = {};
 
-    for (const field in this._updatableFields) {
+    this._updatableFields.forEach((field) => {
       if (Object.hasOwn(req.body, field)) {
         valuesToChange[field] = req.body[field];
       }
+    });
+
+    if (Object.keys(valuesToChange).length > 0) {
+      const query = sql
+        .update(this._tableName)
+        .set(valuesToChange)
+        .where(sql.eq('id', id))
+        .toParams({ placeholder: '?' });
+
+      await connection.query(query.text, query.values);
     }
-
-    const query = sql
-      .update(this._tableName)
-      .set(valuesToChange)
-      .where(sql.eq('id', id))
-      .toParams({ placeholder: '?' });
-
-    await connection.query(query.text, query.values);
 
     res.status(200).send('ok');
   }
@@ -66,11 +68,11 @@ export class DefaultController {
     const id = req.body.id;
 
     if (!Object.hasOwn(req.body, 'isActive')) {
-      res.status(400).send('No isActive field');
+      return res.status(400).send('No isActive field');
     }
 
     if (typeof req.body.isActive !== 'boolean') {
-      res.status(400).send('Invalid value for isActive field');
+      return res.status(400).send('Invalid value for isActive field');
     }
 
     const isActive = req.body.isActive
