@@ -64,7 +64,7 @@ class BooksController extends DefaultController {
   givenAmount() {
     return async (req, res, next) => {
       try {
-        const id = req.body.id;
+        const id = req.query.id;
 
         const query = sql
           .select(sql('COUNT(id) as givenAmount'))
