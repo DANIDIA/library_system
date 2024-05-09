@@ -3,6 +3,6 @@ import { sessionsController } from '../index.js';
 
 export const sessionsRouter = express.Router();
 
-sessionsRouter.post('/login', sessionsController.login);
-sessionsRouter.put('/logout', sessionsController.logout);
-sessionsRouter.post('/is_session_ended', sessionsController.isSessionEnded);
+sessionsRouter.get('/login', sessionsController.login);
+sessionsRouter.get('/logout', sessionsController.logout);
+sessionsRouter.get('/is_session_ended', sessionsController.isSessionEnded);
