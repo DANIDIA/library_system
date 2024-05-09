@@ -14,15 +14,15 @@ export class DefaultController {
     let condition;
 
     this._serchableFields.forEach((field) => {
-      if (Object.hasOwn(req.body, field)) {
-        const fieldEq = sql.eq(field, req.body[field]);
+      if (Object.hasOwn(req.query, field)) {
+        const fieldEq = sql.eq(field, req.query[field]);
 
         condition = condition ? sql.and(condition, fieldEq) : fieldEq;
       }
     });
 
-    if (Object.hasOwn(req.body, 'fromRecordID')) {
-      const fromRecordIdGte = sql.gte('id', req.body.fromRecordID);
+    if (Object.hasOwn(req.query, 'fromRecordID')) {
+      const fromRecordIdGte = sql.gte('id', req.query.fromRecordID);
 
       condition = condition
         ? sql.and(condition, fromRecordIdGte)
@@ -31,7 +31,7 @@ export class DefaultController {
 
     query = condition ? query.where(condition) : query;
 
-    if (Object.hasOwn(req.body, 'recordAmount')) {
+    if (Object.hasOwn(req.query, 'recordAmount')) {
       query = query.limit(req.body.recordAmount);
     }
 

@@ -43,7 +43,11 @@ class SessionsController {
         )
       )[0];
 
-      res.status(200).json({ sessionID: value.insertId });
+      const userData = { ...users[0] };
+      delete userData.login;
+      delete userData.password;
+
+      res.status(200).json({ sessionID: value.insertId, ...userData });
     } catch (e) {
       next(e);
     }
@@ -68,7 +72,7 @@ class SessionsController {
 
   async isSessionEnded(req, res, next) {
     try {
-      const id = req.body.id;
+      const id = req.query.id;
 
       const result = !(await recordExist(id, dbTablesNames.ACTIVE_SESSIONS));
 
