@@ -8,7 +8,7 @@ export const departmentsRouter = express.Router();
 departmentsRouter.use(authenticate);
 
 departmentsRouter.post('/add', adminOnlyRule(), departmentsController.add());
-departmentsRouter.get(
+departmentsRouter.post(
   '/get',
   forManagerRule('id'),
   departmentsController.get()

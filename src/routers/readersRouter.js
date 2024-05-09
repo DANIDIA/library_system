@@ -8,7 +8,7 @@ readersRouter.use(authenticate);
 
 readersRouter.post('/add', readersController.add());
 readersRouter.post('/return_book', readersController.returnBook());
-readersRouter.get('/get', readersController.get());
+readersRouter.post('/get', readersController.get());
 readersRouter.put('/update', readersController.update());
 readersRouter.put('/change_status', readersController.changeStatus());
 readersRouter.delete('/remove', readersController.remove());
