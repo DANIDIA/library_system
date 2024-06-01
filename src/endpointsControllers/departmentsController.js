@@ -109,7 +109,7 @@ export class DepartmentsController extends DefaultController {
         const queryGetBooksAmount = sql
           .select(sql('COUNT(id) as amount'))
           .from(dbTablesNames.BOOKS)
-          .where(sql.eq('departmentID', req.body.id))
+          .where(sql.eq('id', req.body.id))
           .toParams({ placeholder: '?' });
 
         const books = (
