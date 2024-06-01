@@ -18,7 +18,7 @@ departmentsRouter.put(
   forManagerRule('id'),
   departmentsController.update()
 );
-departmentsRouter.put(
+departmentsRouter.delete(
   '/remove',
   adminOnlyRule(),
   departmentsController.remove()

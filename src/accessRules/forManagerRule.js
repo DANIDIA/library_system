@@ -3,7 +3,7 @@ import { role } from '../enums/index.js';
 
 export function forManagerRule(departmentIDField) {
   return async (req, res, next) => {
-    const user = await getUserBySession(req.body.sessionID);
+    const user = await getUserBySession(req.body.sessionID || req.query.sessionID);
 
     if (user.role === role.LIBRARIAN) {
       return res.status(400);
