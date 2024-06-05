@@ -57,7 +57,7 @@ class BooksController extends DefaultController {
 
         const query = sql
           .select('givenBooksAmount')
-          .from(dbTablesNames.BOOKS)
+          .from(this._tableName)
           .where(sql.eq('id', id))
           .toParams({ placeholder: '?' });
 
@@ -138,7 +138,7 @@ class BooksController extends DefaultController {
       try {
         const queryGetBook = sql
           .select()
-          .from(dbTablesNames.BOOKS)
+          .from(this._tableName)
           .where(sql.eq('id', req.body.id))
           .toParams({ placeholder: '?' });
 
@@ -194,7 +194,7 @@ class BooksController extends DefaultController {
 
   async _addGivenBookInDepartment(bookID, departmentID) {
     const query = sql
-      .update([dbTablesNames.BOOKS, dbTablesNames.BOOKS_IN_DEPARTMENTS])
+      .update([this._tableName, dbTablesNames.BOOKS_IN_DEPARTMENTS])
       .set('allBooksAmount', sql('allBooksAmount + 1'))
       .set('booksAmount', sql('booksAmount + 1'))
       .where(
