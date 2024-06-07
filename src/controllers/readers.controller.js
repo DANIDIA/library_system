@@ -1,7 +1,7 @@
 import sql from 'mysql-bricks';
 import { connection, getUserBySession } from '../helpers/index.js';
 import { accountStatus, dbTablesNames } from '../enums/index.js';
-import { DefaultController } from './defaultController.js';
+import { DefaultController } from './default.controller.js';
 import {
   validateEmail,
   validatePhoneNumber,

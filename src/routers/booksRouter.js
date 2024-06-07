@@ -1,5 +1,5 @@
 import * as express from 'express';
-import { booksController } from '../endpointsControllers/index.js';
+import { booksController } from '../controllers/index.js';
 import { authenticate } from '../helpers/index.js';
 
 /**

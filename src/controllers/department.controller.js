@@ -1,10 +1,10 @@
 import sql from 'mysql-bricks';
-import { DefaultController } from './defaultController.js';
+import { DefaultController } from './default.controller.js';
 import { connection, recordExist } from '../helpers/index.js';
 import { dbTablesNames } from '../enums/index.js';
 import { validatePhoneNumber } from '../helpers/contactDetailsValidators.js';
 
-export class DepartmentsController extends DefaultController {
+export class DepartmentController extends DefaultController {
   constructor() {
     const searchableFields = [
       'name',
@@ -152,4 +152,4 @@ export class DepartmentsController extends DefaultController {
   }
 }
 
-export const departmentsController = new DepartmentsController();
+export const departmentsController = new DepartmentController();

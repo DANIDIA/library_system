@@ -1,6 +1,6 @@
 import sql from 'mysql-bricks';
 import passwordGenerator from 'generate-password';
-import { DefaultController } from './defaultController.js';
+import { DefaultController } from './default.controller.js';
 import { accountStatus, dbTablesNames, role } from '../enums/index.js';
 import { connection, recordExist } from '../helpers/index.js';
 import { MAX_PHONE_NUMBER_LENGTH } from '../helpers/constants.js';

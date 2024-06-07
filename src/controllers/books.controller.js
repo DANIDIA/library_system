@@ -2,7 +2,7 @@ import sql from 'mysql-bricks';
 import { connection, getUserBySession, recordExist } from '../helpers/index.js';
 import { MAX_BOOKS_FOR_READER } from '../helpers/constants.js';
 import { accountStatus, dbTablesNames } from '../enums/index.js';
-import { DefaultController } from './defaultController.js';
+import { DefaultController } from './default.controller.js';
 
 class BooksController extends DefaultController {
   constructor() {
