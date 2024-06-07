@@ -1,13 +1,13 @@
 import sql from 'mysql-bricks';
 import { connection, recordExist } from '../helpers/index.js';
-import { accountStatus, dbTablesNames } from '../enums/index.js';
+import { accountStatusesEnum, dbTablesNamesEnum } from '../enums/index.js';
 
 class SessionsController {
   async login(req, res, next) {
     try {
       const queryCheck = sql
         .select()
-        .from(dbTablesNames.EMPLOYEES)
+        .from(dbTablesNamesEnum.EMPLOYEES)
         .where(
           sql.and(
             sql.eq('login', req.body.login),
@@ -24,12 +24,12 @@ class SessionsController {
         return res.status(401).send('Unauthorized');
       }
 
-      if (users[0].isActive === accountStatus.BLOCKED) {
+      if (users[0].isActive === accountStatusesEnum.BLOCKED) {
         return res.status(403).send('Forbidden');
       }
 
       const queryInsertSession = sql
-        .insert(dbTablesNames.ACTIVE_SESSIONS)
+        .insert(dbTablesNamesEnum.ACTIVE_SESSIONS)
         .values({
           employeeID: users[0].id,
           start: sql('NOW()'),
@@ -58,7 +58,7 @@ class SessionsController {
       const id = req.body.id;
 
       const query = sql
-        .delete(dbTablesNames.ACTIVE_SESSIONS)
+        .delete(dbTablesNamesEnum.ACTIVE_SESSIONS)
         .where(sql.eq('id', id))
         .toParams({ placeholder: '?' });
 
@@ -74,7 +74,10 @@ class SessionsController {
     try {
       const id = req.query.id;
 
-      const result = !(await recordExist(id, dbTablesNames.ACTIVE_SESSIONS));
+      const result = !(await recordExist(
+        id,
+        dbTablesNamesEnum.ACTIVE_SESSIONS
+      ));
 
       res.status(200).json({ isEnded: result });
     } catch (e) {

@@ -1,7 +1,7 @@
 import sql from 'mysql-bricks';
 import { DefaultController } from './default.controller.js';
 import { connection, recordExist } from '../helpers/index.js';
-import { dbTablesNames } from '../enums/index.js';
+import { dbTablesNamesEnum } from '../enums/index.js';
 import { validatePhoneNumber } from '../helpers/contactDetailsValidators.js';
 
 export class DepartmentController extends DefaultController {
@@ -18,7 +18,7 @@ export class DepartmentController extends DefaultController {
       'contactNumber',
       'actualManagerID',
     ];
-    super(dbTablesNames.DEPARTMENTS, updatableFields, searchableFields);
+    super(dbTablesNamesEnum.DEPARTMENTS, updatableFields, searchableFields);
   }
 
   add() {
@@ -28,7 +28,7 @@ export class DepartmentController extends DefaultController {
 
         if (
           Object.hasOwn(req.body, 'actualManagerID') &&
-          !(await recordExist(managerID, dbTablesNames.EMPLOYEES))
+          !(await recordExist(managerID, dbTablesNamesEnum.EMPLOYEES))
         ) {
           return res
             .status(404)
@@ -85,7 +85,7 @@ export class DepartmentController extends DefaultController {
 
         if (
           Object.hasOwn(req.body, 'actualManagerID') &&
-          !(await recordExist(managerID, dbTablesNames.EMPLOYEES))
+          !(await recordExist(managerID, dbTablesNamesEnum.EMPLOYEES))
         ) {
           return res
             .status(404)
@@ -108,7 +108,7 @@ export class DepartmentController extends DefaultController {
       try {
         const queryGetBooksAmount = sql
           .select(sql('COUNT(id) as amount'))
-          .from(dbTablesNames.BOOKS)
+          .from(dbTablesNamesEnum.BOOKS)
           .where(sql.eq('id', req.body.id))
           .toParams({ placeholder: '?' });
 
@@ -127,7 +127,7 @@ export class DepartmentController extends DefaultController {
 
         const queryGetEmployeesAmount = sql
           .select(sql('COUNT(id) as amount'))
-          .from(dbTablesNames.EMPLOYEES)
+          .from(dbTablesNamesEnum.EMPLOYEES)
           .where(sql.eq('departmentID', req.body.id))
           .toParams({ placeholder: '?' });
 

@@ -1,13 +1,15 @@
 import { getUserBySession } from '../helpers/index.js';
-import { role } from '../enums/index.js';
+import { rolesEnum } from '../enums/index.js';
 
 export function forManagerRule(departmentIDField) {
   return async (req, res, next) => {
-    const user = await getUserBySession(req.body.sessionID || req.query.sessionID);
+    const user = await getUserBySession(
+      req.body.sessionID || req.query.sessionID
+    );
 
-    if (user.role === role.LIBRARIAN) {
+    if (user.role === rolesEnum.LIBRARIAN) {
       return res.status(400);
-    } else if (user.role === role.DEPARTMENT_MANAGER) {
+    } else if (user.role === rolesEnum.DEPARTMENT_MANAGER) {
       if (req.body[departmentIDField] !== user.role.departmentID) {
         return res.status(400);
       }

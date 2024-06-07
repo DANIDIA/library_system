@@ -1,6 +1,6 @@
 import sql from 'mysql-bricks';
 import { connection, getUserBySession } from '../helpers/index.js';
-import { accountStatus, dbTablesNames } from '../enums/index.js';
+import { accountStatusesEnum, dbTablesNamesEnum } from '../enums/index.js';
 import { DefaultController } from './default.controller.js';
 import {
   validateEmail,
@@ -11,7 +11,7 @@ class ReadersController extends DefaultController {
   constructor() {
     const updatableFields = ['name', 'surname', 'phoneNumber', 'email'];
     const searchableFields = ['name', 'surname', 'phoneNumber', 'email'];
-    super(dbTablesNames.READERS, updatableFields, searchableFields);
+    super(dbTablesNamesEnum.READERS, updatableFields, searchableFields);
   }
 
   add() {
@@ -45,7 +45,13 @@ class ReadersController extends DefaultController {
             'isActive',
             'additionDate',
           ])
-          .values([...values, 0, user.id, accountStatus.ACTIVE, sql('NOW()')])
+          .values([
+            ...values,
+            0,
+            user.id,
+            accountStatusesEnum.ACTIVE,
+            sql('NOW()'),
+          ])
           .toParams({ placeholder: '?' });
 
         await connection.query(query.text, query.values);
@@ -89,7 +95,7 @@ class ReadersController extends DefaultController {
 
         const queryGetHistory = sql
           .select()
-          .from(dbTablesNames.GIVEN_BOOKS)
+          .from(dbTablesNamesEnum.GIVEN_BOOKS)
           .where(sql.and(sql.eq('readerID', id), sql.eq('bookID', bookID)))
           .toParams({ placeholder: '?' });
 
@@ -115,7 +121,7 @@ class ReadersController extends DefaultController {
         );
 
         const queryChangeBooksAmount = sql
-          .update(dbTablesNames.BOOKS)
+          .update(dbTablesNamesEnum.BOOKS)
           .set('amount', sql('amount + 1'))
           .where(sql.eq('id', bookID))
           .toParams({ placeholder: '?' });
@@ -126,7 +132,7 @@ class ReadersController extends DefaultController {
         );
 
         const deleteHistoryRecord = sql
-          .delete(dbTablesNames.GIVEN_BOOKS)
+          .delete(dbTablesNamesEnum.GIVEN_BOOKS)
           .where(sql.eq('id', historyRecords[0].id))
           .toParams({ placeholder: '?' });
 
@@ -157,7 +163,7 @@ class ReadersController extends DefaultController {
       try {
         const query = sql
           .select(sql('COUNT(id) as amount'))
-          .from(dbTablesNames.GIVEN_BOOKS)
+          .from(dbTablesNamesEnum.GIVEN_BOOKS)
           .where(sql.eq('readerID', req.body.id))
           .toParams({ placeholder: '?' });
 

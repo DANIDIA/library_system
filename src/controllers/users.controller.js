@@ -1,7 +1,11 @@
 import sql from 'mysql-bricks';
 import passwordGenerator from 'generate-password';
 import { DefaultController } from './default.controller.js';
-import { accountStatus, dbTablesNames, role } from '../enums/index.js';
+import {
+  accountStatusesEnum,
+  dbTablesNamesEnum,
+  rolesEnum,
+} from '../enums/index.js';
 import { connection, recordExist } from '../helpers/index.js';
 import { MAX_PHONE_NUMBER_LENGTH } from '../helpers/constants.js';
 import {
@@ -29,7 +33,7 @@ class UsersController extends DefaultController {
       'password',
       'departmentID',
     ];
-    super(dbTablesNames.EMPLOYEES, updatableFields, searchableFields);
+    super(dbTablesNamesEnum.EMPLOYEES, updatableFields, searchableFields);
   }
 
   add() {
@@ -53,14 +57,17 @@ class UsersController extends DefaultController {
         }
 
         if (
-          !(await recordExist(req.body.departmentID, dbTablesNames.DEPARTMENTS))
+          !(await recordExist(
+            req.body.departmentID,
+            dbTablesNamesEnum.DEPARTMENTS
+          ))
         ) {
           return res
             .status(404)
             .send(`Department with id ${req.body.departmentID} doesn't exist`);
         }
 
-        if (!Object.values(role).includes(+req.body.role)) {
+        if (!Object.values(rolesEnum).includes(+req.body.role)) {
           return res
             .status(404)
             .send(`Role with id ${req.body.role} doesn't exist`);
@@ -88,7 +95,7 @@ class UsersController extends DefaultController {
           ])
           .values([
             ...values,
-            accountStatus.ACTIVE,
+            accountStatusesEnum.ACTIVE,
             login,
             password,
             sql('NOW()'),
@@ -119,7 +126,10 @@ class UsersController extends DefaultController {
       try {
         if (
           Object.hasOwn(req.body, 'departmentID') &&
-          !(await recordExist(req.body.departmentID, dbTablesNames.DEPARTMENTS))
+          !(await recordExist(
+            req.body.departmentID,
+            dbTablesNamesEnum.DEPARTMENTS
+          ))
         ) {
           return res
             .status(404)

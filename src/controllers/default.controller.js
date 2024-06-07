@@ -1,6 +1,6 @@
 import sql from 'mysql-bricks';
 import { connection, endAllUserSessions } from '../helpers/index.js';
-import { accountStatus } from '../enums/index.js';
+import { accountStatusesEnum } from '../enums/index.js';
 
 export class DefaultController {
   constructor(tableName, updatableFields, searchableFields) {
@@ -76,10 +76,10 @@ export class DefaultController {
     }
 
     const isActive = req.body.isActive
-      ? accountStatus.ACTIVE
-      : accountStatus.BLOCKED;
+      ? accountStatusesEnum.ACTIVE
+      : accountStatusesEnum.BLOCKED;
 
-    if (isActive === accountStatus.BLOCKED) {
+    if (isActive === accountStatusesEnum.BLOCKED) {
       await endAllUserSessions(id);
     }
 
