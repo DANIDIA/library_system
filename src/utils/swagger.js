@@ -8,7 +8,7 @@ const options = {
       title: 'Library system API',
     },
   },
-  apis: ['./src/routers/*.js'],
+  apis: ['./src/routers/routes.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

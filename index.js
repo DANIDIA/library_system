@@ -1,13 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import {
-  booksRouter,
-  readersRouter,
-  sessionsRouter,
-  departmentsRouter,
-  usersRouter,
-} from './src/index.js';
 import { swaggerDocs } from './src/utils/index.js';
+import { routes } from './src/index.js';
 
 const PORT = 5000;
 
@@ -16,11 +10,8 @@ console.log('Server starts...');
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use('/sessions', sessionsRouter);
-app.use('/readers', readersRouter);
-app.use('/books', booksRouter);
-app.use('/users', usersRouter);
-app.use('/departments', departmentsRouter);
+
+routes(app);
 
 swaggerDocs(app);
 
