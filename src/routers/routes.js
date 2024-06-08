@@ -5,9 +5,9 @@ import { usersRouter } from './users.router.js';
 import { departmentsRouter } from './departments.router.js';
 
 export function routes(app) {
-  app.use('auth', authenticationRouter);
-  app.use('api/readers', readersRouter);
-  app.use('api/books', booksRouter);
-  app.use('api/users', usersRouter);
-  app.use('api/departments', departmentsRouter);
+  app.use('/auth', authenticationRouter);
+  app.use('/api/readers', readersRouter);
+  app.use('/api/books', booksRouter);
+  app.use('/api/users', usersRouter);
+  app.use('/api/departments', departmentsRouter);
 }
