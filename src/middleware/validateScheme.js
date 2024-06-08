@@ -9,10 +9,10 @@ export function validateScheme(scheme) {
 
       for (const configCheck of RequestFieldConfigsCheckers) {
         if (configCheck[Symbol.toStringTag] === 'AsyncFunction') {
-          if (!(await configCheck(req, fieldName, config))) return;
+          if (!(await configCheck(res, fieldName, req.body, config))) return;
         }
 
-        if (!configCheck(req, fieldName, config)) return;
+        if (!configCheck(res, fieldName, req.body, config)) return;
       }
     }
 
@@ -28,33 +28,33 @@ const RequestFieldConfigsCheckers = [
   validatorConfigCheck,
 ];
 
-function requireConfigCheck(req, fieldName, { require }) {
-  if (!Object.hasOwn(req.body, fieldName) && require) {
-    req.statusMessage = `A field '${fieldName}' is required`;
-    req.status(400).send();
+function requireConfigCheck(res, fieldName, body, { required }) {
+  if (!Object.hasOwn(body, fieldName) && required) {
+    res.statusMessage = `A field '${fieldName}' is required`;
+    res.status(400).send();
     return false;
   }
 
   return true;
 }
 
-function typeConfigCheck(req, fieldName, { type }) {
-  const fieldValue = req.body[fieldName];
+function typeConfigCheck(res, fieldName, body, { type }) {
+  const fieldValue = body[fieldName];
 
   if (type === schemeFieldTypesEnum.NUMBER_ARRAY) {
     if (
       !Array.isArray(fieldValue) ||
       !fieldValue.every((value) => typeof value === 'number')
     ) {
-      req.statusMessage = `There are non-numeric values in '${fieldName}' array`;
-      req.status(400).send();
+      res.statusMessage = `There are non-numeric values in '${fieldName}' array`;
+      res.status(400).send();
       return false;
     }
   }
 
   if (typeof fieldValue !== type) {
-    req.statusMessage = `The '${fieldName} has invalid type'`;
-    req.status(400).send();
+    res.statusMessage = `The field '${fieldName}' has invalid type'`;
+    res.status(400).send();
     return false;
   }
 
@@ -62,21 +62,22 @@ function typeConfigCheck(req, fieldName, { type }) {
 }
 
 function minMaxLengthConfigCheck(
-  req,
+  res,
   fieldName,
+  body,
   { type, minLength, maxLength }
 ) {
-  const fieldValue = req.body[fieldName];
+  const fieldValue = body[fieldName];
 
   if (schemeFieldTypesEnum.getSequentialTypes().includes(type)) {
     if (fieldValue < minLength) {
-      req.statusMessage = `Value in field '${fieldName}' is too short`;
-      req.status(400).send();
+      res.statusMessage = `Value in field '${fieldName}' is too short`;
+      res.status(400).send();
       return false;
     }
     if (fieldValue > maxLength) {
-      req.statusMessage = `Value in field '${fieldName}' is too long`;
-      req.status(400).send();
+      res.statusMessage = `Value in field '${fieldName}' is too long`;
+      res.status(400).send();
       return false;
     }
   }
@@ -84,21 +85,21 @@ function minMaxLengthConfigCheck(
   return true;
 }
 
-async function checkAsIdConfigCheck(req, fieldName, { type, checkAsID }) {
-  const fieldValue = req.body[fieldName];
+async function checkAsIdConfigCheck(res, fieldName, body, { type, checkAsID }) {
+  const fieldValue = body[fieldName];
 
   if (checkAsID) {
     if (type === schemeFieldTypesEnum.NUMBER_ARRAY) {
       if (!(await allRecordsExist(checkAsID.tableForCheck, ...fieldValue))) {
-        req.statusMessage = 'Some IDs/ID in array do not exist';
-        req.status(400).send();
+        res.statusMessage = 'Some IDs/ID in array do not exist';
+        res.status(400).send();
         return false;
       }
     }
 
     if (!(await recordExist(fieldValue, checkAsID.tableForCheck))) {
-      req.statusMessage = `ID '${fieldValue}' does not exist`;
-      req.status(400).send();
+      res.statusMessage = `ID '${fieldValue}' does not exist`;
+      res.status(400).send();
       return false;
     }
   }
@@ -106,12 +107,12 @@ async function checkAsIdConfigCheck(req, fieldName, { type, checkAsID }) {
   return true;
 }
 
-function validatorConfigCheck(req, fieldName, { validator }) {
-  const fieldValue = req.body[fieldName];
+function validatorConfigCheck(res, fieldName, body, { validator }) {
+  const fieldValue = body[fieldName];
 
-  if (validator && !validator(fieldValue, req)) {
-    req.statusMessage = `Value of field '${fieldName}' is invalid`;
-    req.status(400).send();
+  if (validator && !validator(fieldValue, res)) {
+    res.statusMessage = `Value of field '${fieldName}' is invalid`;
+    res.status(400).send();
     return false;
   }
 
