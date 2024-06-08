@@ -1,5 +1,9 @@
 import express from 'express';
-import { authenticationController } from '../index.js';
+import {
+  createSessionController,
+  endSessionController,
+  getSessionStatusController,
+} from '../index.js';
 import { validateScheme } from '../middleware/index.js';
 import { startSessionScheme } from '../schemas/index.js';
 
@@ -8,7 +12,7 @@ export const authenticationRouter = express.Router();
 authenticationRouter.post(
   '/',
   validateScheme(startSessionScheme),
-  authenticationController.login
+  createSessionController
 );
-authenticationRouter.get('/', authenticationController.isSessionEnded);
-authenticationRouter.delete('/', authenticationController.logout);
+authenticationRouter.get('/', getSessionStatusController);
+authenticationRouter.delete('/', endSessionController);
