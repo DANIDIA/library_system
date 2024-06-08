@@ -2,7 +2,7 @@ import sql from 'mysql-bricks';
 import { connection, recordExist } from '../helpers/index.js';
 import { accountStatusesEnum, dbTablesNamesEnum } from '../shared/index.js';
 
-class SessionsController {
+class AuthenticationController {
   async login(req, res, next) {
     try {
       const queryCheck = sql
@@ -86,4 +86,4 @@ class SessionsController {
   }
 }
 
-export const sessionsController = new SessionsController();
+export const authenticationController = new AuthenticationController();
