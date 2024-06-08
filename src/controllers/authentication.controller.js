@@ -20,7 +20,7 @@ export async function createSessionController(req, res, next) {
     delete responseData.login;
     delete responseData.password;
 
-    res.headers.cookie('sessionID', sessionID, { httpOnly: true });
+    res.cookie('sessionID', sessionID, { httpOnly: true });
 
     res.status(200).json(responseData);
   } catch (e) {
@@ -50,6 +50,8 @@ export async function endSessionController(req, res, next) {
       .toParams({ placeholder: '?' });
 
     await connection.query(query.text, query.values);
+
+    res.cookie('sessionID', '', { httpOnly: true, maxAge: -1 });
 
     res.status(200).send();
   } catch (e) {
