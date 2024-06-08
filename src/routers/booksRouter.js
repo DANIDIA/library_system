@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { booksController } from '../controllers/index.js';
-import { authenticate } from '../helpers/index.js';
+import { authenticate } from '../middleware/index.js';
 
 /**
  * @swagger

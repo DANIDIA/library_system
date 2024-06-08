@@ -1,7 +1,7 @@
 import express from 'express';
-import { authenticate } from '../helpers/index.js';
 import { usersController } from '../controllers/index.js';
 import { forManagerRule } from '../accessRules/index.js';
+import { authenticate } from '../middleware/index.js';
 
 export const usersRouter = express.Router();
 

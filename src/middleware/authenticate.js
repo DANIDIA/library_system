@@ -1,5 +1,5 @@
 import { sessionStatusesRole } from '../shared/index.js';
-import { getSessionStatus } from './helperDBFunctions.js';
+import { getSessionStatus } from '../helpers/index.js';
 
 export async function authenticate(req, res, next) {
   const sessionID = req.body.sessionID || req.query.sessionID;
