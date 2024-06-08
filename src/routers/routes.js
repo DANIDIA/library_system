@@ -5,7 +5,7 @@ import { usersRouter } from './users.router.js';
 import { departmentsRouter } from './departments.router.js';
 
 export function routes(app) {
-  app.use('api/sessions', sessionsRouter);
+  app.use('auth', sessionsRouter);
   app.use('api/readers', readersRouter);
   app.use('api/books', booksRouter);
   app.use('api/users', usersRouter);

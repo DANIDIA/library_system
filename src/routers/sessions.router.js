@@ -1,8 +1,14 @@
 import express from 'express';
 import { sessionsController } from '../index.js';
+import { validateScheme } from '../middleware/index.js';
+import { startSessionScheme } from '../schemas/index.js';
 
 export const sessionsRouter = express.Router();
 
-sessionsRouter.post('/login', sessionsController.login);
-sessionsRouter.put('/logout', sessionsController.logout);
-sessionsRouter.get('/is_session_ended', sessionsController.isSessionEnded);
+sessionsRouter.post(
+  '/',
+  validateScheme(startSessionScheme),
+  sessionsController.login
+);
+sessionsRouter.get('/', sessionsController.isSessionEnded);
+sessionsRouter.delete('/', sessionsController.logout);
