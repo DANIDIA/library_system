@@ -1,8 +1,8 @@
-import { sessionsRouter } from './sessionsRouter.js';
-import { readersRouter } from './readersRouter.js';
-import { booksRouter } from './booksRouter.js';
-import { usersRouter } from './usersRouter.js';
-import { departmentsRouter } from './departmentsRouter.js';
+import { sessionsRouter } from './sessions.router.js';
+import { readersRouter } from './readers.router.js';
+import { booksRouter } from './books.router.js';
+import { usersRouter } from './users.router.js';
+import { departmentsRouter } from './departments.router.js';
 
 export function routes(app) {
   app.use('api/sessions', sessionsRouter);
