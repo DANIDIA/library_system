@@ -46,7 +46,7 @@ function typeConfigCheck(req, fieldName, { type }) {
       !Array.isArray(fieldValue) ||
       !fieldValue.every((value) => typeof value === 'number')
     ) {
-      req.statusMessage = `There are non-numeric values in '${fieldName}' field`;
+      req.statusMessage = `There are non-numeric values in '${fieldName}' array`;
       req.status(400).send();
       return false;
     }
@@ -70,13 +70,13 @@ function minMaxLengthConfigCheck(
 
   if (schemeFieldTypesEnum.getSequentialTypes().includes(type)) {
     if (fieldValue < minLength) {
-      req.statusMessage = '';
-      req.status().send();
+      req.statusMessage = `Value in field '${fieldName}' is too short`;
+      req.status(400).send();
       return false;
     }
     if (fieldValue > maxLength) {
-      req.statusMessage = '';
-      req.status().send();
+      req.statusMessage = `Value in field '${fieldName}' is too long`;
+      req.status(400).send();
       return false;
     }
   }
@@ -90,15 +90,15 @@ async function checkAsIdConfigCheck(req, fieldName, { type, checkAsID }) {
   if (checkAsID) {
     if (type === schemeFieldTypesEnum.NUMBER_ARRAY) {
       if (!(await allRecordsExist(checkAsID.tableForCheck, ...fieldValue))) {
-        req.statusMessage = '';
-        req.status().send();
+        req.statusMessage = 'Some IDs/ID in array do not exist';
+        req.status(400).send();
         return false;
       }
     }
 
     if (!(await recordExist(fieldValue, checkAsID.tableForCheck))) {
-      req.statusMessage = '';
-      req.status().send();
+      req.statusMessage = `ID '${fieldValue}' does not exist`;
+      req.status(400).send();
       return false;
     }
   }
@@ -110,8 +110,8 @@ function validatorConfigCheck(req, fieldName, { validator }) {
   const fieldValue = req.body[fieldName];
 
   if (validator && !validator(fieldValue, req)) {
-    req.statusMessage = '';
-    req.status().send();
+    req.statusMessage = `Value of field '${fieldName}' is invalid`;
+    req.status(400).send();
     return false;
   }
 
