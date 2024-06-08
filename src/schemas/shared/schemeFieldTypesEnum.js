@@ -3,5 +3,5 @@ export const schemeFieldTypesEnum = Object.freeze({
   STRING: 'string',
   BOOL: 'boolean',
   NUMBER_ARRAY: 'number_array',
-  SEQUENTIAL_TYPES: [this.STRING, this.NUMBER_ARRAY],
+  getSequentialTypes: () => [this.STRING, this.NUMBER_ARRAY],
 });

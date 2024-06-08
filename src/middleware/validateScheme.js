@@ -68,7 +68,7 @@ function minMaxLengthConfigCheck(
 ) {
   const fieldValue = req.body[fieldName];
 
-  if (schemeFieldTypesEnum.SEQUENTIAL_TYPES.includes(type)) {
+  if (schemeFieldTypesEnum.getSequentialTypes().includes(type)) {
     if (fieldValue < minLength) {
       req.statusMessage = '';
       req.status().send();
