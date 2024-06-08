@@ -27,7 +27,7 @@ export function defineSchemeField(type) {
     return this;
   };
 
-  result.result.setValidator = function (func) {
+  result.setValidator = function (func) {
     this.validator = func;
     return this;
   };
