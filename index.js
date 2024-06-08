@@ -8,7 +8,7 @@ const PORT = 5000;
 console.log('Server starts...');
 
 const app = express();
-app.use(cors());
+app.use(cors({ credentials: true, origin: process.env.FRONTEND_ORIGIN }));
 app.use(express.json());
 
 routes(app);
