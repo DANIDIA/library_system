@@ -1,6 +1,6 @@
 import sql from 'mysql-bricks';
 import { connection, getUserBySession } from '../helpers/index.js';
-import { accountStatusesEnum, dbTablesNamesEnum } from '../enums/index.js';
+import { accountStatusesEnum, dbTablesNamesEnum } from '../shared/index.js';
 import { DefaultController } from './default.controller.js';
 import {
   validateEmail,

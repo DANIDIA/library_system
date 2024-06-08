@@ -5,9 +5,9 @@ import {
   accountStatusesEnum,
   dbTablesNamesEnum,
   rolesEnum,
-} from '../enums/index.js';
+} from '../shared/index.js';
 import { connection, recordExist } from '../helpers/index.js';
-import { MAX_PHONE_NUMBER_LENGTH } from '../helpers/constants.js';
+import { MAX_PHONE_NUMBER_LENGTH } from '../shared/constants.js';
 import {
   validateEmail,
   validatePhoneNumber,

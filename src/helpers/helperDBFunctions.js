@@ -1,6 +1,6 @@
 import sql from 'mysql-bricks';
 import { connection } from './database.js';
-import { dbTablesNamesEnum, sessionStatusesRole } from '../enums/index.js';
+import { dbTablesNamesEnum, sessionStatusesRole } from '../shared/index.js';
 
 export async function getSessionStatus(sessionID) {
   const query = sql

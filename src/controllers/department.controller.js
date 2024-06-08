@@ -1,7 +1,7 @@
 import sql from 'mysql-bricks';
 import { DefaultController } from './default.controller.js';
 import { connection, recordExist } from '../helpers/index.js';
-import { dbTablesNamesEnum } from '../enums/index.js';
+import { dbTablesNamesEnum } from '../shared/index.js';
 import { validatePhoneNumber } from '../helpers/contactDetailsValidators.js';
 
 export class DepartmentController extends DefaultController {

@@ -1,6 +1,6 @@
 import sql from 'mysql-bricks';
 import { connection, endAllUserSessions } from '../helpers/index.js';
-import { accountStatusesEnum } from '../enums/index.js';
+import { accountStatusesEnum } from '../shared/index.js';
 
 export class DefaultController {
   constructor(tableName, updatableFields, searchableFields) {

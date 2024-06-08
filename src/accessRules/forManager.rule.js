@@ -1,5 +1,5 @@
 import { getUserBySession } from '../helpers/index.js';
-import { rolesEnum } from '../enums/index.js';
+import { rolesEnum } from '../shared/index.js';
 
 export function forManagerRule(departmentIDField) {
   return async (req, res, next) => {

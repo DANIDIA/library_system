@@ -1,4 +1,4 @@
-import { sessionStatusesRole } from '../enums/index.js';
+import { sessionStatusesRole } from '../shared/index.js';
 import { getSessionStatus } from './helperDBFunctions.js';
 
 export async function authenticate(req, res, next) {
