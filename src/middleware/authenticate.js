@@ -2,11 +2,12 @@ import { sessionStatusesRole } from '../shared/index.js';
 import { getSessionStatus } from '../helpers/index.js';
 
 export async function authenticate(req, res, next) {
-  const sessionID = req.body.sessionID || req.query.sessionID;
+  const sessionID = req.cookie.sessionID;
   const status = await getSessionStatus(sessionID);
 
   if (status === sessionStatusesRole.NOT_EXIST) {
-    return res.status(403).send('Session not exist');
+    res.statusMessage = `Session with ID '${sessionID}' doesn't exist`;
+    return res.status(403).send();
   }
 
   next();
