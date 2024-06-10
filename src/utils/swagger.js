@@ -11,7 +11,7 @@ const options = {
       {
         name: 'Authentication',
         description:
-          'Endpoints that allows to authenticate to API. There are session bases authentication with cookies',
+          'Endpoints that allows to authenticate to API. There are session based authentication with cookies',
       },
     ],
   },
