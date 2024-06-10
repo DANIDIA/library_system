@@ -39,6 +39,8 @@ function requireConfigCheck(res, fieldName, body, { required }) {
 }
 
 function typeConfigCheck(res, fieldName, body, { type }) {
+  if (!Object.hasOwn(body, fieldName)) return true;
+
   const fieldValue = body[fieldName];
 
   if (type === schemeFieldTypesEnum.NUMBER_ARRAY) {
@@ -67,6 +69,8 @@ function minMaxLengthConfigCheck(
   body,
   { type, minLength, maxLength }
 ) {
+  if (!Object.hasOwn(body, fieldName)) return true;
+
   const fieldValue = body[fieldName];
 
   if (schemeFieldTypesEnum.getSequentialTypes().includes(type)) {
@@ -86,6 +90,8 @@ function minMaxLengthConfigCheck(
 }
 
 async function checkAsIdConfigCheck(res, fieldName, body, { type, checkAsID }) {
+  if (!Object.hasOwn(body, fieldName)) return true;
+
   const fieldValue = body[fieldName];
 
   if (checkAsID) {
@@ -108,6 +114,8 @@ async function checkAsIdConfigCheck(res, fieldName, body, { type, checkAsID }) {
 }
 
 function validatorConfigCheck(res, fieldName, body, { validator }) {
+  if (!Object.hasOwn(body, fieldName)) return true;
+
   const fieldValue = body[fieldName];
 
   if (validator && !validator(fieldValue, res)) {
