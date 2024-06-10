@@ -55,6 +55,14 @@ import { schemeFieldTypesEnum } from './shared/schemeFieldTypesEnum.js';
  *         departmentID:
  *           type: number
  *           default: 9
+ *     getSessionStatusResponseBody:
+ *       type: object
+ *       required:
+ *         - status
+ *       properties:
+ *         status:
+ *           type: boolean
+ *           default: true
  * */
 
 export const createSessionScheme = Object.freeze({
