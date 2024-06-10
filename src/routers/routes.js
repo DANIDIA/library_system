@@ -1,4 +1,4 @@
-import { authenticationRouter } from './authenticationRouter.js';
+import { authenticationRouter } from './authentication.router.js';
 import { readersRouter } from './readers.router.js';
 import { booksRouter } from './books.router.js';
 import { usersRouter } from './users.router.js';
