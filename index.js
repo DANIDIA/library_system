@@ -7,6 +7,7 @@ import {
   departmentsRouter,
   usersRouter,
 } from './src/index.js';
+import { swaggerDocs } from './src/utils/index.js';
 
 const PORT = 5000;
 
@@ -20,6 +21,8 @@ app.use('/readers', readersRouter);
 app.use('/books', booksRouter);
 app.use('/users', usersRouter);
 app.use('/departments', departmentsRouter);
+
+swaggerDocs(app);
 
 // ToDo: #3: This middleware doesn't work.
 // app.use(handleEndpointsErrors);
