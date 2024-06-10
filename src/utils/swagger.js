@@ -7,6 +7,13 @@ const options = {
     info: {
       title: 'Library system API',
     },
+    tags: [
+      {
+        name: 'Authentication',
+        description:
+          'Endpoints that allows to authenticate to API. There are session bases authentication with cookies',
+      },
+    ],
   },
   apis: ['./src/routers/*.js', './src/schemas/*.schemas.js'],
 };
