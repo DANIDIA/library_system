@@ -1,2 +1,2 @@
-export * from './adminOnlyRule.js';
-export * from './forManagerRule.js';
+export * from './adminOnly.rule.js';
+export * from './forManager.rule.js';

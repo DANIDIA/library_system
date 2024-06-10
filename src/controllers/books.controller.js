@@ -1,15 +1,15 @@
 import sql from 'mysql-bricks';
 import { connection, getUserBySession, recordExist } from '../helpers/index.js';
-import { MAX_BOOKS_FOR_READER } from '../helpers/constants.js';
-import { accountStatus, dbTablesNames } from '../enums/index.js';
-import { DefaultController } from './defaultController.js';
+import { MAX_BOOKS_FOR_READER } from '../shared/constants.js';
+import { accountStatusesEnum, dbTablesNamesEnum } from '../shared/index.js';
+import { DefaultController } from './default.controller.js';
 
 class BooksController extends DefaultController {
   constructor() {
     const updatableFields = ['title'];
     const searchableFields = ['title'];
 
-    super(dbTablesNames.BOOKS, updatableFields, searchableFields);
+    super(dbTablesNamesEnum.BOOKS, updatableFields, searchableFields);
   }
 
   add() {
@@ -94,13 +94,13 @@ class BooksController extends DefaultController {
           return res.status(404).send(`Book with ID ${id} doesn't exist`);
         }
 
-        if (!(await recordExist(readerID, dbTablesNames.READERS))) {
+        if (!(await recordExist(readerID, dbTablesNamesEnum.READERS))) {
           return res
             .status(404)
             .send(`Reader with ID ${readerID} doesn't exist`);
         }
 
-        if (!(await recordExist(departmentID, dbTablesNames.DEPARTMENTS))) {
+        if (!(await recordExist(departmentID, dbTablesNamesEnum.DEPARTMENTS))) {
           return res.status(404).send(`Department with ID ${id} doesn't exist`);
         }
 
@@ -119,7 +119,7 @@ class BooksController extends DefaultController {
           return res.status(400).send('Reader has maximum of books');
         }
 
-        if (reader.isAction === accountStatus.BLOCKED) {
+        if (reader.isAction === accountStatusesEnum.BLOCKED) {
           return res.status(400).send(`Reader with id ${readerID} is blocked`);
         }
 
@@ -153,7 +153,7 @@ class BooksController extends DefaultController {
         }
 
         const deleteBookFromDepartmentsQuery = sql
-          .delete(dbTablesNames.BOOKS_IN_DEPARTMENTS)
+          .delete(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS)
           .where('bookID', req.body.id);
 
         await connection.query(
@@ -171,7 +171,7 @@ class BooksController extends DefaultController {
   async _getReader(readerID) {
     const query = sql
       .select()
-      .from(dbTablesNames.READERS)
+      .from(dbTablesNamesEnum.READERS)
       .where(sql.eq('id', readerID))
       .toParams({ placeholder: '?' });
 
@@ -181,7 +181,7 @@ class BooksController extends DefaultController {
   async _getBookAmountFromDepartment(bookID, departmentID) {
     const query = sql
       .select()
-      .from(dbTablesNames.BOOKS_IN_DEPARTMENTS)
+      .from(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS)
       .where(
         sql.and(sql.eq('bookID', bookID), sql.eq('departmentID', departmentID))
       )
@@ -194,12 +194,12 @@ class BooksController extends DefaultController {
 
   async _addGivenBookInDepartment(bookID, departmentID) {
     const query = sql
-      .update([this._tableName, dbTablesNames.BOOKS_IN_DEPARTMENTS])
+      .update([this._tableName, dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS])
       .set('allBooksAmount', sql('allBooksAmount + 1'))
       .set('booksAmount', sql('booksAmount + 1'))
       .where(
         sql.and(
-          sql.eq(`${dbTablesNames}.id`, bookID),
+          sql.eq(`${dbTablesNamesEnum}.id`, bookID),
           sql.eq('bookID', bookID),
           sql.eq('departmentID', departmentID)
         )
@@ -211,13 +211,13 @@ class BooksController extends DefaultController {
 
   async _getBookToReader(bookID, readerID, departmentID, employeeID) {
     const getBookToReader = sql
-      .update(dbTablesNames.READERS)
+      .update(dbTablesNamesEnum.READERS)
       .set('booksAmount', sql('booksAmount + 1'))
       .where(sql.eq('id', readerID))
       .toParams({ placeholder: '?' });
 
     const addHistoryRecord = sql
-      .insert(dbTablesNames.GIVEN_BOOKS)
+      .insert(dbTablesNamesEnum.GIVEN_BOOKS)
       .values({
         bookID,
         readerID,

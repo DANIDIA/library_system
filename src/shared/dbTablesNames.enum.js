@@ -1,4 +1,4 @@
-export const dbTablesNames = Object.freeze({
+export const dbTablesNamesEnum = Object.freeze({
   BOOKS: 'books',
   READERS: 'readers',
   GIVEN_BOOKS: 'givenbooks',

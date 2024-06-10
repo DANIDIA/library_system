@@ -1,6 +1,17 @@
 import * as express from 'express';
-import { booksController } from '../endpointsControllers/index.js';
-import { authenticate } from '../helpers/index.js';
+import { booksController } from '../controllers/index.js';
+import { authenticate } from '../middleware/index.js';
+
+/**
+ * @swagger
+ *
+ * components:
+ *  schemas:
+ *    book:
+ *      properties:
+ *        id:
+ *          type: number
+ */
 
 export const booksRouter = express.Router();
 
