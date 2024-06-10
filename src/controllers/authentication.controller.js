@@ -32,7 +32,7 @@ export async function getSessionStatusController(req, res, next) {
   try {
     const id = req.cookies.sessionID;
 
-    const result = !(await recordExist(id, dbTablesNamesEnum.ACTIVE_SESSIONS));
+    const result = await recordExist(id, dbTablesNamesEnum.ACTIVE_SESSIONS);
 
     res.status(200).json({ status: result });
   } catch (e) {
