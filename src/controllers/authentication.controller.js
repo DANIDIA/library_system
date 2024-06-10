@@ -49,11 +49,18 @@ export async function endSessionController(req, res, next) {
       .where(sql.eq('id', id))
       .toParams({ placeholder: '?' });
 
-    await connection.query(query.text, query.values);
+    const affectedRows = (await connection.query(query.text, query.values))[0]
+      .affectedRows;
 
-    res.cookie('sessionID', '', { httpOnly: true, maxAge: -1 });
+    if (affectedRows > 0) {
+      res.cookie('sessionID', '', { httpOnly: true, maxAge: -1 });
 
-    res.status(200).send();
+      res.status(200).send();
+    } else {
+      res.statusMessage = `Session with ID '${id}' doesn't exit or is ended`;
+
+      res.status(404).send();
+    }
   } catch (e) {
     next(e);
   }
