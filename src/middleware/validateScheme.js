@@ -3,21 +3,26 @@ import { allRecordsExist, recordExist } from '../helpers/index.js';
 
 export function validateScheme(scheme) {
   return async (req, res, next) => {
-    for (const pair of Object.entries(scheme)) {
-      const fieldName = pair[0];
-      const config = pair[1];
-
-      for (const configCheck of RequestFieldConfigsCheckers) {
-        if (configCheck[Symbol.toStringTag] === 'AsyncFunction') {
-          if (!(await configCheck(res, fieldName, req.body, config))) return;
-        }
-
-        if (!configCheck(res, fieldName, req.body, config)) return;
-      }
-    }
+    await checkObjectConfigs(res, req.body, scheme.body);
+    await checkObjectConfigs(res, req.query, scheme.query);
 
     next();
   };
+}
+
+async function checkObjectConfigs(res, objectToCheck, schemeConfigs) {
+  for (const pair of Object.entries(schemeConfigs)) {
+    const fieldName = pair[0];
+    const config = pair[1];
+
+    for (const configCheck of RequestFieldConfigsCheckers) {
+      if (configCheck[Symbol.toStringTag] === 'AsyncFunction') {
+        if (!(await configCheck(res, fieldName, objectToCheck, config))) return;
+      }
+
+      if (!configCheck(res, fieldName, objectToCheck, config)) return;
+    }
+  }
 }
 
 const RequestFieldConfigsCheckers = [

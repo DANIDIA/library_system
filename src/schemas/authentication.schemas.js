@@ -66,6 +66,8 @@ import { schemeFieldTypesEnum } from './shared/schemeFieldTypesEnum.js';
  * */
 
 export const createSessionScheme = Object.freeze({
-  login: defineSchemeField(schemeFieldTypesEnum.STRING),
-  password: defineSchemeField(schemeFieldTypesEnum.STRING),
+  body: {
+    login: defineSchemeField(schemeFieldTypesEnum.STRING),
+    password: defineSchemeField(schemeFieldTypesEnum.STRING),
+  },
 });
