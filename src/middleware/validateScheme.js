@@ -3,8 +3,13 @@ import { allRecordsExist, recordExist } from '../helpers/index.js';
 
 export function validateScheme(scheme) {
   return async (req, res, next) => {
-    await checkObjectConfigs(res, req.body, scheme.body);
-    await checkObjectConfigs(res, req.query, scheme.query);
+    for (const requestObjectName of Object.keys(scheme)) {
+      await checkObjectConfigs(
+        res,
+        req[requestObjectName],
+        scheme[requestObjectName]
+      );
+    }
 
     next();
   };
@@ -94,12 +99,12 @@ function minMaxLengthConfigCheck(
   const fieldValue = body[fieldName];
 
   if (schemeFieldTypesEnum.getSequentialTypes().includes(type)) {
-    if (fieldValue < minLength) {
+    if (fieldValue.length < minLength) {
       res.statusMessage = `Value in field '${fieldName}' is too short`;
       res.status(400).send();
       return false;
     }
-    if (fieldValue > maxLength) {
+    if (fieldValue.length > maxLength) {
       res.statusMessage = `Value in field '${fieldName}' is too long`;
       res.status(400).send();
       return false;
