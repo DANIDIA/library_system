@@ -4,11 +4,14 @@ import { allRecordsExist, recordExist } from '../helpers/index.js';
 export function validateScheme(scheme) {
   return async (req, res, next) => {
     for (const requestObjectName of Object.keys(scheme)) {
-      await checkObjectConfigs(
-        res,
-        req[requestObjectName],
-        scheme[requestObjectName]
-      );
+      if (
+        !(await checkObjectConfigs(
+          res,
+          req[requestObjectName],
+          scheme[requestObjectName]
+        ))
+      )
+        return;
     }
 
     next();
@@ -22,12 +25,14 @@ async function checkObjectConfigs(res, objectToCheck, schemeConfigs) {
 
     for (const configCheck of RequestFieldConfigsCheckers) {
       if (configCheck[Symbol.toStringTag] === 'AsyncFunction') {
-        if (!(await configCheck(res, fieldName, objectToCheck, config))) return;
+        if (!(await configCheck(res, fieldName, objectToCheck, config)))
+          return false;
       }
 
-      if (!configCheck(res, fieldName, objectToCheck, config)) return;
+      if (!configCheck(res, fieldName, objectToCheck, config)) return false;
     }
   }
+  return true;
 }
 
 const RequestFieldConfigsCheckers = [
