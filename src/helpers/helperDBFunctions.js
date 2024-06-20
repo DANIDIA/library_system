@@ -127,3 +127,13 @@ export async function isUniqValue(table, field, value) {
 
   return resultAmount < 0;
 }
+
+export async function increaseValueBy(table, id, field, value) {
+  const query = sql
+    .update(table)
+    .set(field, sql(`${field} + ${value}`))
+    .where(sql.eq('id', id))
+    .toParams({ placeholder: '?' });
+
+  await connection.query(query.text, query.values);
+}
