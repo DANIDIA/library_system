@@ -129,7 +129,7 @@ export async function deleteDepartmentController(req, res, next) {
     const department = await getDepartmentByID(req.params.id);
 
     if (
-      department.wholeBooksAmount !== 0 ||
+      department.totalBooksAmount !== 0 ||
       department.givenBooksAmount !== 0 ||
       department.employeesAmount !== 0
     ) {
