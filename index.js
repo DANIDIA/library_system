@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import { swaggerDocs } from './src/utils/index.js';
 import { routes } from './src/index.js';
 import cookieParser from 'cookie-parser';
 
@@ -14,8 +13,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 routes(app);
-
-swaggerDocs(app);
 
 // ToDo: #3: This middleware doesn't work.
 // app.use(handleEndpointsErrors);
