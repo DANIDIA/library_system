@@ -51,9 +51,9 @@ export async function recordExist(recordID, tableName) {
 
 export async function allRecordsExist(tableName, ...IDs) {
   const condition = sql.or(
-    IDs.map((id) => {
-      id;
-    })
+    IDs.map((id) => ({
+      id,
+    }))
   );
 
   const query = sql
@@ -91,7 +91,7 @@ export async function changeRecordData(id, table, values) {
   await connection.query(query.text, query.values);
 }
 
-export async function queryRecords(table, queryByValues, rowsToSelect = '*') {
+export async function queryRecords(table, queryByValues, rowsToSelect = ['*']) {
   const query = sql
     .select(rowsToSelect)
     .from(table)
