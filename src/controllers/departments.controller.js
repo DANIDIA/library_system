@@ -16,7 +16,7 @@ import { getSchemeFields } from './helpers.js';
 
 export async function createDepartmentController(req, res, next) {
   try {
-    const scheme = getSchemeFields(defaultDepartmentScheme, req);
+    const scheme = getSchemeFields(req, defaultDepartmentScheme);
     const hasActualManagerIdField = Object.hasOwn(
       scheme.body,
       'actualManagerID'
