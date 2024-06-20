@@ -15,7 +15,7 @@ async function checkObjectConfigs(res, objectToCheck, schemeConfigs) {
     const fieldName = pair[0];
     const config = pair[1];
 
-    for (const configCheck of RequestFieldConfigsCheckers) {
+    for (const configCheck of requestFieldConfigsCheckers) {
       if (configCheck[Symbol.toStringTag] === 'AsyncFunction') {
         if (!(await configCheck(res, fieldName, objectToCheck, config))) return;
       }
@@ -25,7 +25,7 @@ async function checkObjectConfigs(res, objectToCheck, schemeConfigs) {
   }
 }
 
-const RequestFieldConfigsCheckers = [
+const requestFieldConfigsCheckers = [
   requireConfigCheck,
   typeConfigCheck,
   minMaxLengthConfigCheck,
