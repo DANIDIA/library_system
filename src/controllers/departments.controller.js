@@ -4,7 +4,7 @@ import {
   deleteRecord,
   getUserBySession,
   increaseValueBy,
-  isUniqValue,
+  hasDublicatedValue,
   queryRecords,
 } from '../helpers/index.js';
 import { dbTablesNamesEnum, rolesEnum } from '../shared/index.js';
@@ -29,31 +29,16 @@ export async function createDepartmentController(req, res, next) {
       if (!(await newActualManagerValidator(managerID, res))) return;
     }
 
-    if (Object.hasOwn(scheme.body, 'contactNumber')) {
-      if (
-        !(await isUniqValue(
-          dbTablesNamesEnum.DEPARTMENTS,
-          'contactNumber',
-          scheme.body.contactNumber
-        ))
-      ) {
-        res.statusMessage = 'Phone number already has been used';
-        return res.status(409).send();
-      }
+    if (await isContactNumberDuplicated(scheme.body.contactNumber)) {
+      res.statusMessage = 'Phone number already has been used';
+      return res.status(409).send();
     }
 
     const id = await createRecord(dbTablesNamesEnum.DEPARTMENTS, scheme.body);
 
     if (hasActualManagerIdField) {
-      await changeRecordData(managerID, dbTablesNamesEnum.EMPLOYEES, {
-        departmentID: id,
-      });
-      await increaseValueBy(
-        dbTablesNamesEnum.DEPARTMENTS,
-        id,
-        'employeesAmount',
-        1
-      );
+      await setDepartmentIdOfManager(managerID, id);
+      await increaseEmployeeAmountByOne(id);
     }
 
     res.status(201).send({ id });
@@ -99,53 +84,35 @@ export async function queryDepartmentsController(req, res, next) {
 
 export async function updateDepartmentController(req, res, next) {
   try {
-    const department = (
-      await queryRecords(dbTablesNamesEnum.DEPARTMENTS, {
-        id: req.params.id,
-      })
-    )[0];
+    const departmentID = req.params.id;
+    const department = await getDepartmentByID(departmentID);
     const scheme = getSchemeFields(req, defaultDepartmentScheme);
     const managerID = scheme.body.actualManagerID;
-    const hasManagerIDField = Object.hasOwn(scheme.body, 'actualManagerID');
-
     const requestAuthor = await getUserBySession(req.cookies.sessionID);
-    const departmentID = req.params.id;
 
     if (requestAuthor.role === rolesEnum.LIBRARIAN) {
       return res.status(403).send();
     }
 
-    if (department.contactNumber !== scheme.body.contactNumber) {
-      if (
-        !(await isUniqValue(
-          dbTablesNamesEnum.DEPARTMENTS,
-          'contactNumber',
-          scheme.body.contactNumber
-        ))
-      ) {
-        res.statusMessage = 'Phone number already has been used';
-        return res.status(409).send();
-      }
+    if (
+      department.contactNumber !== scheme.body.contactNumber &&
+      (await isContactNumberDuplicated(req.body.contactNumber))
+    ) {
+      res.statusMessage = 'Phone number already has been used';
+      return res.status(409).send();
     }
 
-    if (hasManagerIDField) {
+    if (Object.hasOwn(scheme.body, 'actualManagerID')) {
       if (requestAuthor.role !== rolesEnum.ADMIN) {
         return res.status(403).send();
       }
 
       if (!(await newActualManagerValidator(managerID, res))) return;
 
-      await changeRecordData(managerID, dbTablesNamesEnum.EMPLOYEES, {
-        departmentID,
-      });
+      await setDepartmentIdOfManager(managerID, departmentID);
 
       if (department.actualManagerID === null) {
-        await increaseValueBy(
-          dbTablesNamesEnum.DEPARTMENTS,
-          departmentID,
-          'employeesAmount',
-          1
-        );
+        await increaseEmployeeAmountByOne(departmentID);
       }
     }
 
@@ -172,11 +139,7 @@ export async function updateDepartmentController(req, res, next) {
 
 export async function deleteDepartmentController(req, res, next) {
   try {
-    const department = (
-      await queryRecords(dbTablesNamesEnum.DEPARTMENTS, {
-        id: req.params.id,
-      })
-    )[0];
+    const department = await getDepartmentByID(req.params.id);
 
     if (
       department.wholeBooksAmount !== 0 ||
@@ -194,4 +157,31 @@ export async function deleteDepartmentController(req, res, next) {
   } catch (e) {
     next(e);
   }
+}
+
+async function getDepartmentByID(id) {
+  return (await queryRecords(dbTablesNamesEnum.DEPARTMENTS, { id }))[0];
+}
+
+async function isContactNumberDuplicated(value) {
+  return await hasDublicatedValue(
+    dbTablesNamesEnum.DEPARTMENTS,
+    'contactNumber',
+    value
+  );
+}
+
+async function setDepartmentIdOfManager(managerID, departmentID) {
+  await changeRecordData(managerID, dbTablesNamesEnum.EMPLOYEES, {
+    departmentID,
+  });
+}
+
+async function increaseEmployeeAmountByOne(departmentID) {
+  await increaseValueBy(
+    dbTablesNamesEnum.DEPARTMENTS,
+    departmentID,
+    'employeesAmount',
+    1
+  );
 }
