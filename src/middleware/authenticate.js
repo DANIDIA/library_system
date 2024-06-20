@@ -2,7 +2,7 @@ import { sessionStatusesRole } from '../shared/index.js';
 import { getSessionStatus } from '../helpers/index.js';
 
 export async function authenticate(req, res, next) {
-  const sessionID = req.cookie.sessionID;
+  const sessionID = req.cookies.sessionID;
   const status = await getSessionStatus(sessionID);
 
   if (status === sessionStatusesRole.NOT_EXIST) {
