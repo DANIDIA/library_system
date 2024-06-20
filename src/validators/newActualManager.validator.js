@@ -12,10 +12,12 @@ export async function newActualManagerValidator(managerID, response) {
   const user = (await connection.query(query.text, query.values))[0][0];
 
   if (!user || user.role !== rolesEnum.DEPARTMENT_MANAGER) {
-    response.status().send();
+    response.statusMessage = `Employee with ID '${managerID}' is not a manager`;
+    response.status(409).send();
     return false;
   } else if (user.departmentID !== null) {
-    response.status().send();
+    response.statusMessage = 'Manager was already an actual department manager';
+    response.status(409).send();
     return false;
   }
 
