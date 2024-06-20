@@ -92,14 +92,16 @@ export async function changeRecordData(id, table, values) {
 }
 
 export async function queryRecords(table, queryByValues, rowsToSelect = ['*']) {
-  const query = sql
-    .select(rowsToSelect)
-    .from(table)
-    .where(
+  let query = sql.select(rowsToSelect).from(table);
+
+  if (Object.entries(queryByValues).length > 0)
+    query = query.where(
       sql.and(
         Object.entries(queryByValues).map((pair) => sql.eq(pair[0], pair[1]))
       )
     );
+
+  query = query.toParams({ placeholder: '?' });
 
   return (await connection.query(query.text, query.values))[0];
 }
