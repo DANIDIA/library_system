@@ -4,7 +4,7 @@ export function getSchemeFields(request, scheme) {
   const filterRequestObjectEntries = (requestObject, keys) =>
     Object.entries(requestObject).filter((entry) => keys.includes(entry[0]));
 
-  for (const objectName in Object.keys(scheme)) {
+  for (const objectName of Object.keys(scheme)) {
     const schemeKeys = Object.keys(scheme[objectName]);
 
     result[objectName] = Object.fromEntries(
