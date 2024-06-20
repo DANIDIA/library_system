@@ -78,19 +78,23 @@ export async function queryDepartmentsController(req, res, next) {
 
 export async function updateDepartmentController(req, res, next) {
   try {
-    const scheme = getSchemeFields(defaultDepartmentScheme, req);
+    const scheme = getSchemeFields(req, defaultDepartmentScheme);
     const managerID = scheme.body.actualManagerID;
     const hasManagerIDField = Object.hasOwn(scheme.body, 'actualManagerID');
 
     const requestAuthor = await getUserBySession(req.cookies.sessionID);
     const departmentID = req.params.id;
 
+    if (requestAuthor.role === rolesEnum.LIBRARIAN) {
+      return res.status(403).send();
+    }
+
     if (hasManagerIDField) {
       if (requestAuthor.role !== rolesEnum.ADMIN) {
         return res.status(403).send();
       }
 
-      if (!(await newActualManagerValidator(res, managerID))) return;
+      if (!(await newActualManagerValidator(managerID, res))) return;
 
       await changeRecordData(managerID, dbTablesNamesEnum.EMPLOYEES, {
         departmentID,
@@ -101,9 +105,8 @@ export async function updateDepartmentController(req, res, next) {
       requestAuthor.role === rolesEnum.DEPARTMENT_MANAGER &&
       +requestAuthor.departmentID !== +departmentID
     ) {
-      res.statusMessage(
-        'You do not have permission as manager of another department'
-      );
+      res.statusMessage =
+        'You do not have permission as manager of another department';
       res.status(403).send();
     }
 
