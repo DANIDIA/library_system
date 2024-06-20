@@ -151,16 +151,18 @@ export async function updateDepartmentController(req, res, next) {
 
 export async function deleteDepartmentController(req, res, next) {
   try {
-    const department = await queryRecords(dbTablesNamesEnum.DEPARTMENTS, {
-      id: req.params.id,
-    });
+    const department = (
+      await queryRecords(dbTablesNamesEnum.DEPARTMENTS, {
+        id: req.params.id,
+      })
+    )[0];
 
     if (
-      department.wholeBooksAmount === 0 ||
-      department.givenBooksAmount === 0 ||
-      department.employeesAmount === 0
+      department.wholeBooksAmount !== 0 ||
+      department.givenBooksAmount !== 0 ||
+      department.employeesAmount !== 0
     ) {
-      res.statusText =
+      res.statusMessage =
         'There are books or hired employees in department or not all books was returned';
       return res.status(409).send();
     }
