@@ -18,6 +18,7 @@
     "email-validator": "^2.0.4",
     "express": "^4.18.2",
     "generate-password": "^1.7.1",
+    "libphonenumber-js": "^1.11.4",
     "mysql-bricks": "^1.1.2",
     "mysql2": "^3.9.1",
     "phone": "^3.1.42",

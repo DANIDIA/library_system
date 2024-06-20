@@ -3,8 +3,16 @@ import { allRecordsExist, recordExist } from '../helpers/index.js';
 
 export function validateScheme(scheme) {
   return async (req, res, next) => {
-    await checkObjectConfigs(res, req.body, scheme.body);
-    await checkObjectConfigs(res, req.query, scheme.query);
+    for (const requestObjectName of Object.keys(scheme)) {
+      if (
+        !(await checkObjectConfigs(
+          res,
+          req[requestObjectName],
+          scheme[requestObjectName]
+        ))
+      )
+        return;
+    }
 
     next();
   };
@@ -15,19 +23,22 @@ async function checkObjectConfigs(res, objectToCheck, schemeConfigs) {
     const fieldName = pair[0];
     const config = pair[1];
 
-    for (const configCheck of requestFieldConfigsCheckers) {
+    for (const configCheck of RequestFieldConfigsCheckers) {
       if (configCheck[Symbol.toStringTag] === 'AsyncFunction') {
-        if (!(await configCheck(res, fieldName, objectToCheck, config))) return;
+        if (!(await configCheck(res, fieldName, objectToCheck, config)))
+          return false;
       }
 
-      if (!configCheck(res, fieldName, objectToCheck, config)) return;
+      if (!configCheck(res, fieldName, objectToCheck, config)) return false;
     }
   }
+  return true;
 }
 
-const requestFieldConfigsCheckers = [
+const RequestFieldConfigsCheckers = [
   requireConfigCheck,
   typeConfigCheck,
+  minValueConfigCheck,
   minMaxLengthConfigCheck,
   checkAsIdConfigCheck,
   validatorConfigCheck,
@@ -68,6 +79,20 @@ function typeConfigCheck(res, fieldName, body, { type }) {
   return true;
 }
 
+function minValueConfigCheck(res, fieldName, body, { type, minValue }) {
+  if (!Object.hasOwn(body, fieldName)) return true;
+
+  const fieldValue = body[fieldName];
+
+  if (type === schemeFieldTypesEnum.NUMBER && fieldValue < minValue) {
+    res.statusMessage = `Field '${fieldName}' cannot be less than ${minValue}`;
+    res.status(400).send();
+    return true;
+  }
+
+  return true;
+}
+
 function minMaxLengthConfigCheck(
   res,
   fieldName,
@@ -79,12 +104,12 @@ function minMaxLengthConfigCheck(
   const fieldValue = body[fieldName];
 
   if (schemeFieldTypesEnum.getSequentialTypes().includes(type)) {
-    if (fieldValue < minLength) {
+    if (fieldValue.length < minLength) {
       res.statusMessage = `Value in field '${fieldName}' is too short`;
       res.status(400).send();
       return false;
     }
-    if (fieldValue > maxLength) {
+    if (fieldValue.length > maxLength) {
       res.statusMessage = `Value in field '${fieldName}' is too long`;
       res.status(400).send();
       return false;

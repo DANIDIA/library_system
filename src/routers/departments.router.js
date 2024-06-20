@@ -1,25 +1,43 @@
 import express from 'express';
-import { departmentsController } from '../controllers/index.js';
+import {
+  createDepartmentController,
+  queryDepartmentsController,
+  deleteDepartmentController,
+  updateDepartmentController,
+} from '../controllers/index.js';
 import { adminOnlyRule, forManagerRule } from '../accessRules/index.js';
-import { authenticate } from '../middleware/index.js';
+import { authenticate, validateScheme } from '../middleware/index.js';
+import {
+  defaultDepartmentScheme,
+  queryDepartmentScheme,
+  departmentDataAccessScheme,
+  updateDepartmentScheme,
+} from '../schemas/index.js';
 
 export const departmentsRouter = express.Router();
 
 departmentsRouter.use(authenticate);
 
-departmentsRouter.post('/add', adminOnlyRule(), departmentsController.add());
+departmentsRouter.post(
+  '/',
+  adminOnlyRule(),
+  validateScheme(defaultDepartmentScheme),
+  createDepartmentController
+);
 departmentsRouter.get(
-  '/get',
-  forManagerRule('id'),
-  departmentsController.get()
+  '/',
+  validateScheme(queryDepartmentScheme),
+  queryDepartmentsController
 );
 departmentsRouter.put(
-  '/update',
+  '/:id',
   forManagerRule('id'),
-  departmentsController.update()
+  validateScheme(updateDepartmentScheme),
+  updateDepartmentController
 );
 departmentsRouter.delete(
-  '/remove',
+  '/:id',
   adminOnlyRule(),
-  departmentsController.remove()
+  validateScheme(departmentDataAccessScheme),
+  deleteDepartmentController
 );
