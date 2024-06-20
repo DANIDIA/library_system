@@ -5,7 +5,7 @@ import {
   deleteDepartmentController,
   updateDepartmentController,
 } from '../controllers/index.js';
-import { adminOnlyRule } from '../accessRules/index.js';
+import { adminOnlyRule, forManagerRule } from '../accessRules/index.js';
 import { authenticate, validateScheme } from '../middleware/index.js';
 import {
   defaultDepartmentScheme,
@@ -31,7 +31,7 @@ departmentsRouter.get(
 );
 departmentsRouter.put(
   '/:id',
-  // forManagerRule('id'),
+  forManagerRule('id'),
   validateScheme(updateDepartmentScheme),
   updateDepartmentController
 );

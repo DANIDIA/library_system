@@ -90,10 +90,6 @@ export async function updateDepartmentController(req, res, next) {
     const managerID = scheme.body.actualManagerID;
     const requestAuthor = await getUserBySession(req.cookies.sessionID);
 
-    if (requestAuthor.role === rolesEnum.LIBRARIAN) {
-      return res.status(403).send();
-    }
-
     if (
       department.contactNumber !== scheme.body.contactNumber &&
       (await isContactNumberDuplicated(req.body.contactNumber))
@@ -114,15 +110,6 @@ export async function updateDepartmentController(req, res, next) {
       if (department.actualManagerID === null) {
         await increaseEmployeeAmountByOne(departmentID);
       }
-    }
-
-    if (
-      requestAuthor.role === rolesEnum.DEPARTMENT_MANAGER &&
-      +requestAuthor.departmentID !== +departmentID
-    ) {
-      res.statusMessage =
-        'You do not have permission as manager of another department';
-      res.status(403).send();
     }
 
     await changeRecordData(
