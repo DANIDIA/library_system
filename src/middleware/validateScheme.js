@@ -15,7 +15,7 @@ async function checkObjectConfigs(res, objectToCheck, schemeConfigs) {
     const fieldName = pair[0];
     const config = pair[1];
 
-    for (const configCheck of requestFieldConfigsCheckers) {
+    for (const configCheck of RequestFieldConfigsCheckers) {
       if (configCheck[Symbol.toStringTag] === 'AsyncFunction') {
         if (!(await configCheck(res, fieldName, objectToCheck, config))) return;
       }
@@ -25,9 +25,10 @@ async function checkObjectConfigs(res, objectToCheck, schemeConfigs) {
   }
 }
 
-const requestFieldConfigsCheckers = [
+const RequestFieldConfigsCheckers = [
   requireConfigCheck,
   typeConfigCheck,
+  minValueConfigCheck,
   minMaxLengthConfigCheck,
   checkAsIdConfigCheck,
   validatorConfigCheck,
@@ -63,6 +64,20 @@ function typeConfigCheck(res, fieldName, body, { type }) {
     res.statusMessage = `The field '${fieldName}' has invalid type'`;
     res.status(400).send();
     return false;
+  }
+
+  return true;
+}
+
+function minValueConfigCheck(res, fieldName, body, { type, minValue }) {
+  if (!Object.hasOwn(body, fieldName)) return true;
+
+  const fieldValue = body[fieldName];
+
+  if (type === schemeFieldTypesEnum.NUMBER && fieldValue < minValue) {
+    res.statusMessage = `Field '${fieldName}' cannot be less than ${minValue}`;
+    res.status(400).send();
+    return true;
   }
 
   return true;

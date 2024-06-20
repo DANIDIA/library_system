@@ -4,6 +4,7 @@ export function defineSchemeField(type) {
   result.required = true;
   result.minLength = 0;
   result.maxLength = NaN;
+  result.minValue = NaN;
   result.checkAsID = null;
   result.validator = () => true;
 
@@ -19,6 +20,11 @@ export function defineSchemeField(type) {
 
   result.setMaxLength = function (value) {
     this.maxLength = value;
+    return this;
+  };
+
+  result.setMinValue = function (value) {
+    this.minValue = value;
     return this;
   };
 
