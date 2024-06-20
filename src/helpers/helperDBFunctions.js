@@ -75,3 +75,37 @@ export async function endAllUserSessions(id) {
 
   await connection.query(query.text, query.values);
 }
+
+export async function createRecord(table, data) {
+  const query = sql.insert(table, data).toParams({ placeholder: '?' });
+
+  return (await connection.query(query.text, query.values))[0].insertId;
+}
+
+export async function changeRecordData(id, table, values) {
+  const query = sql
+    .update(table, values)
+    .where(sql.eq('id', id))
+    .toParams({ placeholder: '?' });
+
+  await connection.query(query.text, query.values);
+}
+
+export async function queryRecords(table, queryByValues, rowsToSelect = '*') {
+  const query = sql
+    .select(rowsToSelect)
+    .from(table)
+    .where(
+      sql.and(
+        Object.entries(queryByValues).map((pair) => sql.eq(pair[0], pair[1]))
+      )
+    );
+
+  return (await connection.query(query.text, query.values))[0];
+}
+
+export async function deleteRecord(id, table) {
+  const query = sql.delete(table).where(sql.eq('id', id));
+
+  await connection.query(query.text, query.values);
+}

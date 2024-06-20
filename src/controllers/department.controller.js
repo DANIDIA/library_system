@@ -1,155 +1,141 @@
-import sql from 'mysql-bricks';
-import { DefaultController } from './default.controller.js';
-import { connection, recordExist } from '../helpers/index.js';
-import { dbTablesNamesEnum } from '../shared/index.js';
-import { validatePhoneNumber } from '../helpers/contactDetailsValidators.js';
+import {
+  changeRecordData,
+  createRecord,
+  deleteRecord,
+  getUserBySession,
+  queryRecords,
+} from '../helpers/index.js';
+import { dbTablesNamesEnum, rolesEnum } from '../shared/index.js';
+import {
+  defaultDepartmentScheme,
+  queryDepartmentScheme,
+} from '../schemas/index.js';
+import { newActualManagerValidator } from '../validators/index.js';
+import { departmentResourceFieldsNames } from './shared/index.js';
+import { getSchemeFields } from './helpers.js';
 
-export class DepartmentController extends DefaultController {
-  constructor() {
-    const searchableFields = [
-      'name',
-      'address',
-      'contactNumber',
-      'actualManagerID',
-    ];
-    const updatableFields = [
-      'name',
-      'address',
-      'contactNumber',
-      'actualManagerID',
-    ];
-    super(dbTablesNamesEnum.DEPARTMENTS, updatableFields, searchableFields);
-  }
+export async function createDepartmentController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(defaultDepartmentScheme, req);
+    const hasActualManagerIdField = Object.hasOwn(
+      scheme.body,
+      'actualManagerID'
+    );
+    const managerID = scheme.body.actualManagerID;
 
-  add() {
-    return async (req, res, next) => {
-      try {
-        const managerID = req.body.actualManagerID;
+    if (hasActualManagerIdField) {
+      if (!(await newActualManagerValidator(managerID, res))) return;
+    }
 
-        if (
-          Object.hasOwn(req.body, 'actualManagerID') &&
-          !(await recordExist(managerID, dbTablesNamesEnum.EMPLOYEES))
-        ) {
-          return res
-            .status(404)
-            .send(`Department manager with id ${managerID} doesn't exist`);
-        }
+    const id = await createRecord(dbTablesNamesEnum.DEPARTMENTS, scheme.body);
 
-        const fields = {
-          name: true,
-          address: true,
-          contactNumber: true,
-          actualManagerID: false,
-        };
+    if (hasActualManagerIdField) {
+      await changeRecordData(managerID, dbTablesNamesEnum.EMPLOYEES, {
+        departmentID: id,
+      });
+    }
 
-        const values = this._getValuesFromRequestBody(req.body, fields);
-
-        if (typeof values === 'string') {
-          return res
-            .status(404)
-            .send(`Field with name '${values}' is necessary`);
-        }
-
-        if (validatePhoneNumber(req, res)) {
-          return;
-        }
-
-        const query = sql
-          .insert(this._tableName, Object.keys(fields))
-          .values(values)
-          .toParams({ placeholder: '?' });
-
-        await connection.query(query.text, query.values);
-
-        res.status(200).send('ok');
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  get() {
-    return async (req, res, next) => {
-      try {
-        await super.get(req, res);
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  update() {
-    return async (req, res, next) => {
-      try {
-        const managerID = req.body.actualManagerID;
-
-        if (
-          Object.hasOwn(req.body, 'actualManagerID') &&
-          !(await recordExist(managerID, dbTablesNamesEnum.EMPLOYEES))
-        ) {
-          return res
-            .status(404)
-            .send(`Department manager with id ${managerID} doesn't exist`);
-        }
-
-        if (validatePhoneNumber(req, res)) {
-          return;
-        }
-
-        await super.update(req, res);
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  remove() {
-    return async (req, res, next) => {
-      try {
-        const queryGetBooksAmount = sql
-          .select(sql('COUNT(id) as amount'))
-          .from(dbTablesNamesEnum.BOOKS)
-          .where(sql.eq('id', req.body.id))
-          .toParams({ placeholder: '?' });
-
-        const books = (
-          await connection.query(
-            queryGetBooksAmount.text,
-            queryGetBooksAmount.values
-          )
-        )[0][0];
-
-        if (books.amount > 0) {
-          return res
-            .status(400)
-            .send(`There are books in department with id ${req.res.id}`);
-        }
-
-        const queryGetEmployeesAmount = sql
-          .select(sql('COUNT(id) as amount'))
-          .from(dbTablesNamesEnum.EMPLOYEES)
-          .where(sql.eq('departmentID', req.body.id))
-          .toParams({ placeholder: '?' });
-
-        const employees = (
-          await connection.query(
-            queryGetEmployeesAmount.text,
-            queryGetBooksAmount.values
-          )
-        )[0][0];
-
-        if (employees.amount > 0) {
-          return res
-            .status(400)
-            .send(`There are employees in department with id ${req.res.id}`);
-        }
-
-        await super.remove(req, res);
-      } catch (e) {
-        next(e);
-      }
-    };
+    res.status(201).send({ id });
+  } catch (e) {
+    next(e);
   }
 }
 
-export const departmentsController = new DepartmentController();
+export async function queryDepartmentsController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(req, queryDepartmentScheme);
+
+    const results = await queryRecords(
+      dbTablesNamesEnum.DEPARTMENTS,
+      scheme.query,
+      departmentResourceFieldsNames
+    );
+
+    if (
+      Object.hasOwn(scheme.query, 'pageSize') &&
+      Object.hasOwn(scheme.query, 'pageNumber')
+    ) {
+      const pageSize = scheme.query.pageSize;
+      const pageNumber = scheme.query.pageNumber;
+
+      return res.status(200).send({
+        allResultsAmount: results.length,
+        results: results.slice(
+          pageSize * pageNumber + 1,
+          pageSize * (pageNumber + 1) + 1
+        ),
+      });
+    }
+
+    res.status(200).send({ allResultsAmount: results.length, results });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function updateDepartmentController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(defaultDepartmentScheme, req);
+    const managerID = scheme.body.actualManagerID;
+    const hasManagerIDField = Object.hasOwn(scheme.body, 'actualManagerID');
+
+    const requestAuthor = await getUserBySession(req.cookies.sessionID);
+    const departmentID = req.params.id;
+
+    if (hasManagerIDField) {
+      if (requestAuthor.role !== rolesEnum.ADMIN) {
+        return res.status(403).send();
+      }
+
+      if (!(await newActualManagerValidator(res, managerID))) return;
+
+      await changeRecordData(managerID, dbTablesNamesEnum.EMPLOYEES, {
+        departmentID,
+      });
+    }
+
+    if (
+      requestAuthor.role === rolesEnum.DEPARTMENT_MANAGER &&
+      +requestAuthor.departmentID !== +departmentID
+    ) {
+      res.statusMessage(
+        'You do not have permission as manager of another department'
+      );
+      res.status(403).send();
+    }
+
+    await changeRecordData(
+      departmentID,
+      dbTablesNamesEnum.DEPARTMENTS,
+      scheme.body
+    );
+
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function deleteDepartmentController(req, res, next) {
+  try {
+    const department = await queryRecords(dbTablesNamesEnum.DEPARTMENTS, {
+      id: req.params.id,
+    });
+
+    if (
+      department.wholeBooksAmount === 0 ||
+      department.givenBooksAmount === 0 ||
+      department.employeesAmount === 0
+    ) {
+      res.statusText =
+        'There are books or hired employees in department or not all books was returned';
+      return res.status(409).send();
+    }
+
+    await deleteRecord(req.params.id, dbTablesNamesEnum.DEPARTMENTS);
+
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+}
