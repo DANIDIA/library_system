@@ -44,10 +44,13 @@ export async function createDepartmentController(req, res, next) {
 export async function queryDepartmentsController(req, res, next) {
   try {
     const scheme = getSchemeFields(req, queryDepartmentScheme);
+    const valuesToQuery = { ...scheme.query };
+    delete valuesToQuery.pageSize;
+    delete valuesToQuery.pageNumber;
 
     const results = await queryRecords(
       dbTablesNamesEnum.DEPARTMENTS,
-      scheme.query,
+      valuesToQuery,
       departmentResourceFieldsNames
     );
 
@@ -61,8 +64,8 @@ export async function queryDepartmentsController(req, res, next) {
       return res.status(200).send({
         allResultsAmount: results.length,
         results: results.slice(
-          pageSize * pageNumber + 1,
-          pageSize * (pageNumber + 1) + 1
+          pageSize * pageNumber,
+          pageSize * (pageNumber + 1)
         ),
       });
     }
