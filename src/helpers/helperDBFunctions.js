@@ -107,7 +107,10 @@ export async function queryRecords(table, queryByValues, rowsToSelect = ['*']) {
 }
 
 export async function deleteRecord(id, table) {
-  const query = sql.delete(table).where(sql.eq('id', id));
+  const query = sql
+    .delete(table)
+    .where(sql.eq('id', id))
+    .toParams({ placeholder: '?' });
 
   await connection.query(query.text, query.values);
 }
