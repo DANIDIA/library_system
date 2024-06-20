@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   createDepartmentController,
+  queryDepartmentsController,
   deleteDepartmentController,
   updateDepartmentController,
 } from '../controllers/index.js';
