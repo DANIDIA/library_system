@@ -99,6 +99,11 @@ export async function queryDepartmentsController(req, res, next) {
 
 export async function updateDepartmentController(req, res, next) {
   try {
+    const department = (
+      await queryRecords(dbTablesNamesEnum.DEPARTMENTS, {
+        id: req.params.id,
+      })
+    )[0];
     const scheme = getSchemeFields(req, defaultDepartmentScheme);
     const managerID = scheme.body.actualManagerID;
     const hasManagerIDField = Object.hasOwn(scheme.body, 'actualManagerID');
@@ -110,7 +115,7 @@ export async function updateDepartmentController(req, res, next) {
       return res.status(403).send();
     }
 
-    if (Object.hasOwn(scheme.body, 'contactNumber')) {
+    if (department.contactNumber !== scheme.body.contactNumber) {
       if (
         !(await isUniqValue(
           dbTablesNamesEnum.DEPARTMENTS,
@@ -129,12 +134,6 @@ export async function updateDepartmentController(req, res, next) {
       }
 
       if (!(await newActualManagerValidator(managerID, res))) return;
-
-      const department = (
-        await queryRecords(dbTablesNamesEnum.DEPARTMENTS, {
-          id: req.params.id,
-        })
-      )[0];
 
       await changeRecordData(managerID, dbTablesNamesEnum.EMPLOYEES, {
         departmentID,
