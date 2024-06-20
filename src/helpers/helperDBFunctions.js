@@ -125,7 +125,7 @@ export async function isUniqValue(table, field, value) {
   const resultAmount = (await connection.query(query.text, query.values))[0]
     .length;
 
-  return resultAmount < 0;
+  return resultAmount <= 0;
 }
 
 export async function increaseValueBy(table, id, field, value) {
