@@ -49,6 +49,24 @@ export async function recordExist(recordID, tableName) {
   return records.length > 0;
 }
 
+export async function allRecordsExist(tableName, ...IDs) {
+  const condition = sql.or(
+    IDs.map((id) => {
+      id;
+    })
+  );
+
+  const query = sql
+    .select('COUNT(id) as recordsAmount')
+    .from(tableName)
+    .where(condition)
+    .toParams({ placeholder: '?' });
+
+  const recordsAmountExist = (await connection(query))[0][0].recordsAmount;
+
+  return recordsAmountExist === IDs.length;
+}
+
 export async function endAllUserSessions(id) {
   const query = sql
     .delete(dbTablesNamesEnum.ACTIVE_SESSIONS)

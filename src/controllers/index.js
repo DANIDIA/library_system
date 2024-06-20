@@ -1,4 +1,4 @@
-export * from './sessions.controller.js';
+export * from './authentication.controller.js';
 export * from './readers.controller.js';
 export * from './books.controller.js';
 export * from './department.controller.js';

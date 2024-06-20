@@ -7,8 +7,15 @@ const options = {
     info: {
       title: 'Library system API',
     },
+    tags: [
+      {
+        name: 'Authentication',
+        description:
+          'Endpoints that allows to authenticate to API. There are session based authentication with cookies',
+      },
+    ],
   },
-  apis: ['./src/routers/routes.js'],
+  apis: ['./src/routers/*.js', './src/schemas/*.schemas.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

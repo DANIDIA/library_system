@@ -2,14 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import { swaggerDocs } from './src/utils/index.js';
 import { routes } from './src/index.js';
+import cookieParser from 'cookie-parser';
 
 const PORT = 5000;
 
 console.log('Server starts...');
 
 const app = express();
-app.use(cors());
+app.use(cors({ credentials: true, origin: process.env.FRONTEND_ORIGIN }));
 app.use(express.json());
+app.use(cookieParser());
 
 routes(app);
 
