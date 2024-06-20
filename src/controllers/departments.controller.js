@@ -3,6 +3,7 @@ import {
   createRecord,
   deleteRecord,
   getUserBySession,
+  isUniqValue,
   queryRecords,
 } from '../helpers/index.js';
 import { dbTablesNamesEnum, rolesEnum } from '../shared/index.js';
@@ -25,6 +26,19 @@ export async function createDepartmentController(req, res, next) {
 
     if (hasActualManagerIdField) {
       if (!(await newActualManagerValidator(managerID, res))) return;
+    }
+
+    if (Object.hasOwn(scheme.body, 'contactNumber')) {
+      if (
+        !(await isUniqValue(
+          dbTablesNamesEnum.DEPARTMENTS,
+          'contactNumber',
+          scheme.body.contactNumber
+        ))
+      ) {
+        res.statusMessage = 'Phone number already has been used';
+        return res.status(409).send();
+      }
     }
 
     const id = await createRecord(dbTablesNamesEnum.DEPARTMENTS, scheme.body);
@@ -87,6 +101,19 @@ export async function updateDepartmentController(req, res, next) {
 
     if (requestAuthor.role === rolesEnum.LIBRARIAN) {
       return res.status(403).send();
+    }
+
+    if (Object.hasOwn(scheme.body, 'contactNumber')) {
+      if (
+        !(await isUniqValue(
+          dbTablesNamesEnum.DEPARTMENTS,
+          'contactNumber',
+          scheme.body.contactNumber
+        ))
+      ) {
+        res.statusMessage = 'Phone number already has been used';
+        return res.status(409).send();
+      }
     }
 
     if (hasManagerIDField) {

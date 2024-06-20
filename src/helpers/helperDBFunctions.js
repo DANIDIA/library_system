@@ -111,3 +111,16 @@ export async function deleteRecord(id, table) {
 
   await connection.query(query.text, query.values);
 }
+
+export async function isUniqValue(table, field, value) {
+  const query = sql
+    .select()
+    .from(table)
+    .where(sql.eq(field, value))
+    .toParams({ placeholder: '?' });
+
+  const resultAmount = (await connection.query(query.text, query.values))[0]
+    .length;
+
+  return resultAmount < 0;
+}
