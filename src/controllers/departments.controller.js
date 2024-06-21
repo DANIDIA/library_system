@@ -82,6 +82,58 @@ export async function queryDepartmentsController(req, res, next) {
   }
 }
 
+export async function getDepartmentByIdController(req, res, next) {
+  try {
+    res
+      .status(200)
+      .send(
+        await getDepartmentByID(req.params.id, departmentResourceFieldsNames)
+      );
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getTotalBooksAmountInDepartmentController(
+  req,
+  res,
+  next
+) {
+  try {
+    res.status(200).send({
+      totalBooksAmount: (await getDepartmentByID(req.params.id))
+        .totalBooksAmount,
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getGivenBooksAmountInDepartmentController(
+  req,
+  res,
+  next
+) {
+  try {
+    return res.status(200).send({
+      givenBooksAmount: (await getDepartmentByID(req.params.id))
+        .givenBooksAmount,
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getEmployeesAmountInDepartmentController(req, res, next) {
+  try {
+    return res.status(200).send({
+      employeesAmount: (await getDepartmentByID(req.params.id)).employeesAmount,
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
 export async function updateDepartmentController(req, res, next) {
   try {
     const departmentID = req.params.id;
@@ -146,8 +198,10 @@ export async function deleteDepartmentController(req, res, next) {
   }
 }
 
-async function getDepartmentByID(id) {
-  return (await queryRecords(dbTablesNamesEnum.DEPARTMENTS, { id }))[0];
+async function getDepartmentByID(id, fieldsToShow = ['*']) {
+  return (
+    await queryRecords(dbTablesNamesEnum.DEPARTMENTS, { id }, fieldsToShow)
+  )[0];
 }
 
 async function isContactNumberDuplicated(value) {
