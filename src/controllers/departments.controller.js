@@ -84,7 +84,11 @@ export async function queryDepartmentsController(req, res, next) {
 
 export async function getDepartmentByIdController(req, res, next) {
   try {
-    res.status(200).send(await getDepartmentByID(req.params.id));
+    res
+      .status(200)
+      .send(
+        await getDepartmentByID(req.params.id, departmentResourceFieldsNames)
+      );
   } catch (e) {
     next(e);
   }
@@ -194,8 +198,10 @@ export async function deleteDepartmentController(req, res, next) {
   }
 }
 
-async function getDepartmentByID(id) {
-  return (await queryRecords(dbTablesNamesEnum.DEPARTMENTS, { id }))[0];
+async function getDepartmentByID(id, fieldsToShow = ['*']) {
+  return (
+    await queryRecords(dbTablesNamesEnum.DEPARTMENTS, { id }, fieldsToShow)
+  )[0];
 }
 
 async function isContactNumberDuplicated(value) {
