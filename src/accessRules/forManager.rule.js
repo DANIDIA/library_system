@@ -15,11 +15,11 @@ export function forManagerRule(departmentIdField, inRequestBody = true) {
 
     if (
       user.role === rolesEnum.DEPARTMENT_MANAGER &&
-      valueToCheck !== user.departmentID
+      +valueToCheck !== user.departmentID
     ) {
       res.statusMessage =
         'You do not have permission as manager of another department';
-      return res.status(403);
+      return res.status(403).send();
     }
 
     next();
