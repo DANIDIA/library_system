@@ -4,6 +4,10 @@ import {
   queryDepartmentsController,
   deleteDepartmentController,
   updateDepartmentController,
+  getDepartmentByIdController,
+  getTotalBooksAmountInDepartmentController,
+  getGivenBooksAmountInDepartmentController,
+  getEmployeesAmountInDepartmentController,
 } from '../controllers/index.js';
 import { adminOnlyRule, forManagerRule } from '../accessRules/index.js';
 import { authenticate, validateScheme } from '../middleware/index.js';
@@ -29,9 +33,30 @@ departmentsRouter.get(
   validateScheme(queryDepartmentScheme),
   queryDepartmentsController
 );
+departmentsRouter.get(
+  '/:id',
+  validateScheme(departmentDataAccessScheme),
+  getDepartmentByIdController
+);
+departmentsRouter.get(
+  '/:id/total-books-amount',
+  validateScheme(departmentDataAccessScheme),
+  getTotalBooksAmountInDepartmentController
+);
+departmentsRouter.get(
+  '/:id/given-books-amount',
+  validateScheme(departmentDataAccessScheme),
+  getGivenBooksAmountInDepartmentController
+);
+departmentsRouter.get(
+  '/:id/employees-amount',
+  forManagerRule('id', false),
+  validateScheme(departmentDataAccessScheme),
+  getEmployeesAmountInDepartmentController
+);
 departmentsRouter.put(
   '/:id',
-  forManagerRule('id'),
+  forManagerRule('id', false),
   validateScheme(updateDepartmentScheme),
   updateDepartmentController
 );
