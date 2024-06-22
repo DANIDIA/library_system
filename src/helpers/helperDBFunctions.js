@@ -137,3 +137,18 @@ export async function increaseValueBy(table, id, field, value) {
 
   await connection.query(query.text, query.values);
 }
+
+export async function getDepartmentByID(id, fieldsToShow = ['*']) {
+  return (
+    await queryRecords(dbTablesNamesEnum.DEPARTMENTS, { id }, fieldsToShow)
+  )[0];
+}
+
+export async function increaseEmployeeAmountByOne(departmentID) {
+  await increaseValueBy(
+    dbTablesNamesEnum.DEPARTMENTS,
+    departmentID,
+    'employeesAmount',
+    1
+  );
+}
