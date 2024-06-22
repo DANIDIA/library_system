@@ -1,7 +1,7 @@
 import phoneNumberParser from 'libphonenumber-js';
 
 export function phoneNumberValidator(value, response) {
-  if (phoneNumberParser(value).isValid()) {
+  if (phoneNumberParser(value, 'PL').isValid()) {
     return true;
   }
 
