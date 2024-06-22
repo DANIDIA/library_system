@@ -70,6 +70,14 @@ function typeConfigCheck(res, fieldName, body, { type }) {
     }
   }
 
+  if (
+    type === schemeFieldTypesEnum.NUMBER_OR_NULL &&
+    typeof fieldValue !== 'number' &&
+    fieldValue !== null
+  ) {
+    return false;
+  }
+
   if (typeof fieldValue !== type) {
     res.statusMessage = `The field '${fieldName}' has invalid type'`;
     res.status(400).send();
@@ -131,6 +139,10 @@ async function checkAsIdConfigCheck(res, fieldName, body, { type, checkAsID }) {
         res.status(400).send();
         return false;
       }
+    }
+
+    if (type === schemeFieldTypesEnum.NUMBER_OR_NULL) {
+      if (fieldValue === null) return true;
     }
 
     if (!(await recordExist(fieldValue, checkAsID.tableForCheck))) {
