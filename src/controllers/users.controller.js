@@ -1,17 +1,77 @@
-import sql from 'mysql-bricks';
 import passwordGenerator from 'generate-password';
 import { DefaultController } from './default.controller.js';
+import { dbTablesNamesEnum, rolesEnum } from '../shared/index.js';
 import {
-  accountStatusesEnum,
-  dbTablesNamesEnum,
-  rolesEnum,
-} from '../shared/index.js';
-import { connection, recordExist } from '../helpers/index.js';
-import { MAX_PHONE_NUMBER_LENGTH } from '../shared/constants.js';
+  changeRecordData,
+  createRecord,
+  getDepartmentByID,
+  getUserBySession,
+  increaseEmployeeAmountByOne,
+  recordExist,
+} from '../helpers/index.js';
 import {
   validateEmail,
   validatePhoneNumber,
 } from '../helpers/contactDetailsValidators.js';
+import { getSchemeFields } from './helpers.js';
+import { defaultUsersScheme } from '../schemas/users.shemas.js';
+import sql from 'mysql-bricks';
+
+export async function createUserController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(req, defaultUsersScheme);
+
+    if (
+      await checkAuthorRolePermission(
+        req.cookies.sessionID,
+        scheme.body.role,
+        res
+      )
+    ) {
+      return;
+    }
+
+    const login = req.body.name + req.body.surname;
+    const password = passwordGenerator.generate({
+      length: 10,
+      numbers: true,
+      uppercase: true,
+      lowercase: true,
+    });
+
+    const departmentID = scheme.body.departmentID;
+    const department = await getDepartmentByID(scheme.body.departmentID);
+
+    const isSetNewActualDepartmentManager =
+      departmentID !== null &&
+      scheme.body.role === rolesEnum.DEPARTMENT_MANAGER;
+
+    if (isSetNewActualDepartmentManager && department.actualMangerID !== null) {
+      res.statusMessage = `Department with id ${departmentID} already has department manager`;
+      return res.status(409).send();
+    }
+
+    const id = await createRecord(dbTablesNamesEnum.EMPLOYEES, {
+      ...scheme.body,
+      login,
+      password,
+      additionDate: sql('NOW()'),
+    });
+
+    if (isSetNewActualDepartmentManager) {
+      await increaseEmployeeAmountByOne(departmentID);
+      await setActualDepartmentManager(id, departmentID);
+    }
+
+    if (scheme.body.role !== rolesEnum.DEPARTMENT_MANAGER) {
+      await increaseEmployeeAmountByOne(departmentID);
+    }
+
+    res.status(201).send({ id });
+  } catch (e) {
+    next(e);
+  }
+}
 
 class UsersController extends DefaultController {
   constructor() {
@@ -34,81 +94,6 @@ class UsersController extends DefaultController {
       'departmentID',
     ];
     super(dbTablesNamesEnum.EMPLOYEES, updatableFields, searchableFields);
-  }
-
-  add() {
-    return async (req, res, next) => {
-      try {
-        const fields = {
-          name: true,
-          surname: true,
-          phoneNumber: true,
-          role: true,
-          departmentID: true,
-          email: false,
-        };
-
-        const values = this._getValuesFromRequestBody(req.body, fields);
-
-        if (typeof values === 'string') {
-          return res
-            .status(404)
-            .send(`Field with name '${values}' is necessary`);
-        }
-
-        if (
-          !(await recordExist(
-            req.body.departmentID,
-            dbTablesNamesEnum.DEPARTMENTS
-          ))
-        ) {
-          return res
-            .status(404)
-            .send(`Department with id ${req.body.departmentID} doesn't exist`);
-        }
-
-        if (!Object.values(rolesEnum).includes(+req.body.role)) {
-          return res
-            .status(404)
-            .send(`Role with id ${req.body.role} doesn't exist`);
-        }
-
-        if (validateEmail(req, res) || validatePhoneNumber(req, res)) {
-          return;
-        }
-
-        const login = req.body.name + req.body.surname;
-        const password = passwordGenerator.generate({
-          length: 10,
-          numbers: true,
-          uppercase: true,
-          lowercase: true,
-        });
-
-        const query = sql
-          .insert(this._tableName, [
-            ...Object.keys(fields),
-            'isActive',
-            'login',
-            'password',
-            'additionDate',
-          ])
-          .values([
-            ...values,
-            accountStatusesEnum.ACTIVE,
-            login,
-            password,
-            sql('NOW()'),
-          ])
-          .toParams({ placeholder: '?' });
-
-        await connection.query(query.text, query.values);
-
-        res.status(200).send('ok');
-      } catch (e) {
-        next(e);
-      }
-    };
   }
 
   get() {
@@ -159,3 +144,25 @@ class UsersController extends DefaultController {
 }
 
 export const usersController = new UsersController();
+
+async function setActualDepartmentManager(actualManagerID, departmentID) {
+  await changeRecordData(departmentID, dbTablesNamesEnum.DEPARTMENTS, {
+    actualManagerID,
+  });
+}
+
+async function checkAuthorRolePermission(authorID, roleTryingToSet, res) {
+  const author = await getUserBySession(authorID);
+
+  if (
+    author.role === rolesEnum.DEPARTMENT_MANAGER &&
+    roleTryingToSet !== rolesEnum.LIBRARIAN
+  ) {
+    res.statusMessage =
+      "You don't have permission to manipulate with users with permission level manager or higher";
+    res.status(403).send();
+    return false;
+  }
+
+  return true;
+}
