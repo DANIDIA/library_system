@@ -5,3 +5,14 @@ export const departmentResourceFieldsNames = [
   'contactNumber',
   'actualManagerID',
 ];
+
+export const usersResourceFieldsNames = [
+  'id',
+  'name',
+  'surname',
+  'role',
+  'phoneNumber',
+  'email',
+  'status',
+  'departmentID',
+];

@@ -3,6 +3,7 @@ import { DefaultController } from './default.controller.js';
 import { dbTablesNamesEnum, rolesEnum } from '../shared/index.js';
 import {
   changeRecordData,
+  connection,
   createRecord,
   getDepartmentByID,
   getUserBySession,
@@ -14,8 +15,12 @@ import {
   validatePhoneNumber,
 } from '../helpers/contactDetailsValidators.js';
 import { getSchemeFields } from './helpers.js';
-import { defaultUsersScheme } from '../schemas/users.shemas.js';
+import {
+  defaultUsersScheme,
+  queryUsersScheme,
+} from '../schemas/users.shemas.js';
 import sql from 'mysql-bricks';
+import { usersResourceFieldsNames } from './shared/index.js';
 
 export async function createUserController(req, res, next) {
   try {
@@ -73,17 +78,41 @@ export async function createUserController(req, res, next) {
   }
 }
 
+export async function queryUsersController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(req, queryUsersScheme);
+    const valuesToQuery = { ...scheme.query };
+    delete valuesToQuery.pageSize;
+    delete valuesToQuery.pageNumber;
+
+    const author = await getUserBySession(req.cookies.sessionID);
+
+    if (author.role === rolesEnum.DEPARTMENT_MANAGER) {
+      if (!Object.hasOwn(scheme.query, 'role')) {
+        res.statusMessage =
+          "You don't have permission to see data of all users, specify role";
+        return res.status(403).send();
+      }
+      if (!Object.hasOwn(scheme.query, 'departmentID')) {
+        res.statusMessage =
+          "You don't have permission to see data of all users, specify departmentID";
+        return res.status(403).send();
+      }
+    }
+
+    const results = await queryUsers(valuesToQuery);
+
+    res.status(200).send({
+      allResultsAmount: results.length,
+      results: paginateValues(scheme, results),
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
 class UsersController extends DefaultController {
   constructor() {
-    const searchableFields = [
-      'name',
-      'surname',
-      'role',
-      'phoneNumber',
-      'email',
-      'login',
-      'departmentID',
-    ];
     const updatableFields = [
       'name',
       'surname',
@@ -93,17 +122,7 @@ class UsersController extends DefaultController {
       'password',
       'departmentID',
     ];
-    super(dbTablesNamesEnum.EMPLOYEES, updatableFields, searchableFields);
-  }
-
-  get() {
-    return async (req, res, next) => {
-      try {
-        await super.get(req, res);
-      } catch (e) {
-        next(e);
-      }
-    };
+    super(dbTablesNamesEnum.EMPLOYEES, updatableFields);
   }
 
   update() {
@@ -165,4 +184,35 @@ async function checkAuthorRolePermission(authorID, roleTryingToSet, res) {
   }
 
   return true;
+}
+
+function paginateValues(scheme, values) {
+  if (
+    !Object.hasOwn(scheme.query, 'pageSize') ||
+    !Object.hasOwn(scheme.query, 'pageNumber')
+  ) {
+    return values;
+  }
+
+  const pageSize = scheme.query.pageSize;
+  const pageNumber = scheme.query.pageNumber;
+
+  return values.slice(pageSize * pageNumber, pageSize * (pageNumber + 1));
+}
+
+async function queryUsers(valuesToQuery) {
+  const query = sql
+    .select(usersResourceFieldsNames)
+    .from(dbTablesNamesEnum.EMPLOYEES)
+    .where(
+      sql.and([
+        ...Object.entries(valuesToQuery).map((entry) =>
+          sql.eq(entry[0], entry[1])
+        ),
+        sql.notEq('role', rolesEnum.ADMIN),
+      ])
+    )
+    .toParams({ placeholder: '?' });
+
+  return (await connection.qeury(query.text, query.values))[0];
 }
