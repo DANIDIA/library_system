@@ -32,14 +32,14 @@ export async function createUserController(req, res, next) {
     const author = await getUserBySession(req.cookies.sessionID);
 
     if (
-      rolePermissionLevel[author.role] < rolePermissionLevel[scheme.body.role]
+      rolePermissionLevel[author.role] <= rolePermissionLevel[scheme.body.role]
     ) {
       res.statusMessage =
-        "You don't have permission to manipulate with users with permission level manager or higher";
+        "You don't have permission to manipulate with users with permission of you or higher";
       return res.status(403).send();
     }
 
-    const login = req.body.name + req.body.surname;
+    const login = await generateLogin(scheme.body.name, scheme.body.surname);
     const password = passwordGenerator.generate({
       length: 10,
       numbers: true,
@@ -54,12 +54,22 @@ export async function createUserController(req, res, next) {
       departmentID !== null &&
       scheme.body.role === rolesEnum.DEPARTMENT_MANAGER;
 
-    if (isSetNewActualDepartmentManager && department.actualMangerID !== null) {
+    if (
+      isSetNewActualDepartmentManager &&
+      department.actualManagerID !== null
+    ) {
       res.statusMessage = `Department with id ${departmentID} already has department manager`;
       return res.status(409).send();
     }
 
-    if (!(await checkUserDuplicatedData(scheme, res))) {
+    if (
+      !(await checkFieldDuplicate(
+        'phoneNumber',
+        scheme.body.phoneNumber,
+        res
+      )) ||
+      !(await checkFieldDuplicate('email', scheme.body.email, res))
+    ) {
       return;
     }
 
@@ -113,9 +123,10 @@ export async function queryUsersController(req, res, next) {
           "You don't have permission to manipulate with users with your permission level or higher";
         return res.status(403).send();
       }
-      if (author.departmentID !== req.query.departmentID) {
+      if (author.departmentID !== +req.query.departmentID) {
         res.statusMessage =
           "You don't have permission to manipulate with users from other departments";
+        return res.status(403).send();
       }
     }
 
@@ -141,7 +152,7 @@ export async function updateUserController(req, res, next) {
     const putDepartment = await getDepartmentByID(putDepartmentID);
 
     const isChangingRole = scheme.body.role !== user.role;
-    const isChangingDepartment = user.departmentID !== scheme.body.departmetnID;
+    const isChangingDepartment = user.departmentID !== scheme.body.departmentID;
     const isPuttingManager = scheme.body.role === rolesEnum.DEPARTMENT_MANAGER;
 
     if (
@@ -159,10 +170,17 @@ export async function updateUserController(req, res, next) {
       putDepartment?.actualManagerID !== null
     ) {
       res.statusMessage = `Department with id '${putDepartmentID}' has already department manager`;
-      return res.status(406).send();
+      return res.status(409).send();
     }
 
-    if (!(await checkUserDuplicatedData(scheme, res))) {
+    if (
+      (scheme.body.phoneNumber !== user.phoneNumber &&
+        !(await checkFieldDuplicate('phoneNumber', scheme.body.phoneNumber))) ||
+      (scheme.body.email !== user.email &&
+        !(await checkFieldDuplicate('email', scheme.body.email))) ||
+      (scheme.body.login !== user.login &&
+        !(await checkFieldDuplicate('login')))
+    ) {
       return;
     }
 
@@ -214,7 +232,7 @@ async function queryUsers(valuesToQuery) {
     )
     .toParams({ placeholder: '?' });
 
-  return (await connection.qeury(query.text, query.values))[0];
+  return (await connection.query(query.text, query.values))[0];
 }
 
 async function getUserByID(id) {
@@ -231,24 +249,23 @@ async function setManagerInDepartment(id, managerID) {
   });
 }
 
-async function checkUserDuplicatedData(scheme, res) {
-  const table = dbTablesNamesEnum.EMPLOYEES;
-
-  if (!(await hasDuplicatedValue(table, 'login', scheme.login))) {
-    res.statusMessage = 'Login has already exist';
-    res.status(403).send();
-    return false;
-  }
-  if (!(await hasDuplicatedValue(table, 'email', scheme.email))) {
-    res.statusMessage = 'Email has already used';
-    res.status(403).send();
-    return false;
-  }
-  if (!(await hasDuplicatedValue(table, 'phoneNumber', scheme.phoneNumber))) {
-    res.statusMessage = 'Phone number has already used';
-    res.status(403).send();
+async function checkFieldDuplicate(field, value, res) {
+  if (await hasDuplicatedValue(dbTablesNamesEnum.EMPLOYEES, field, value)) {
+    res.statusMessage = `Value in field '${field}' is duplicated`;
+    res.status(409).send();
     return false;
   }
 
   return true;
+}
+
+async function generateLogin(userName, userSurname) {
+  const amountOfNamesakes = (
+    await queryRecords(dbTablesNamesEnum.EMPLOYEES, {
+      name: userName,
+      surname: userSurname,
+    })
+  ).length;
+
+  return userName + userSurname + amountOfNamesakes;
 }
