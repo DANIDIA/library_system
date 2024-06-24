@@ -15,7 +15,6 @@ import {
 export const usersRouter = express.Router();
 
 usersRouter.use(authenticate);
-usersRouter.use(forManagerRule('departmentID'));
 
 usersRouter.post(
   '/',
