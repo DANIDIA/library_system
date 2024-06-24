@@ -12,7 +12,7 @@ import {
   endAllUserSessions,
   getDepartmentByID,
   getUserBySession,
-  hasDublicatedValue,
+  hasDuplicatedValue,
   increaseEmployeeAmountByOne,
   queryRecords,
 } from '../helpers/index.js';
@@ -234,17 +234,17 @@ async function setManagerInDepartment(id, managerID) {
 async function checkUserDuplicatedData(scheme, res) {
   const table = dbTablesNamesEnum.EMPLOYEES;
 
-  if (!(await hasDublicatedValue(table, 'login', scheme.login))) {
+  if (!(await hasDuplicatedValue(table, 'login', scheme.login))) {
     res.statusMessage = 'Login has already exist';
     res.status(403).send();
     return false;
   }
-  if (!(await hasDublicatedValue(table, 'email', scheme.email))) {
+  if (!(await hasDuplicatedValue(table, 'email', scheme.email))) {
     res.statusMessage = 'Email has already used';
     res.status(403).send();
     return false;
   }
-  if (!(await hasDublicatedValue(table, 'phoneNumber', scheme.phoneNumber))) {
+  if (!(await hasDuplicatedValue(table, 'phoneNumber', scheme.phoneNumber))) {
     res.statusMessage = 'Phone number has already used';
     res.status(403).send();
     return false;

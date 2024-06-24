@@ -62,7 +62,9 @@ export async function allRecordsExist(tableName, ...IDs) {
     .where(condition)
     .toParams({ placeholder: '?' });
 
-  const recordsAmountExist = (await connection(query))[0][0].recordsAmount;
+  const recordsAmountExist = (
+    await connection.query(query.text, query.values)
+  )[0][0].recordsAmount;
 
   return recordsAmountExist === IDs.length;
 }
@@ -115,7 +117,7 @@ export async function deleteRecord(id, table) {
   await connection.query(query.text, query.values);
 }
 
-export async function hasDublicatedValue(table, field, value) {
+export async function hasDuplicatedValue(table, field, value) {
   const query = sql
     .select()
     .from(table)

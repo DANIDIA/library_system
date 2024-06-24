@@ -3,7 +3,7 @@ import {
   createRecord,
   deleteRecord,
   getUserBySession,
-  hasDublicatedValue,
+  hasDuplicatedValue,
   queryRecords,
   getDepartmentByID,
   increaseEmployeeAmountByOne,
@@ -200,7 +200,7 @@ export async function deleteDepartmentController(req, res, next) {
 }
 
 async function isContactNumberDuplicated(value) {
-  return await hasDublicatedValue(
+  return await hasDuplicatedValue(
     dbTablesNamesEnum.DEPARTMENTS,
     'contactNumber',
     value
