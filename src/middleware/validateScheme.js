@@ -71,14 +71,10 @@ function typeConfigCheck(res, fieldName, body, { type }) {
   }
 
   if (
-    type === schemeFieldTypesEnum.NUMBER_OR_NULL &&
-    typeof fieldValue !== 'number' &&
-    fieldValue !== null
+    (type === schemeFieldTypesEnum.NUMBER_OR_NULL &&
+      !(typeof fieldValue === 'number' || fieldValue === null)) ||
+    (type !== schemeFieldTypesEnum.NUMBER_OR_NULL && typeof fieldValue !== type)
   ) {
-    return false;
-  }
-
-  if (typeof fieldValue !== type) {
     res.statusMessage = `The field '${fieldName}' has invalid type'`;
     res.status(400).send();
     return false;
