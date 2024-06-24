@@ -8,14 +8,14 @@ import {
   changeRecordData,
   connection,
   createRecord,
+  decreaseEmployeesAmountByOne,
   endAllUserSessions,
   getDepartmentByID,
   getUserBySession,
   increaseEmployeeAmountByOne,
-  increaseValueBy,
   queryRecords,
 } from '../helpers/index.js';
-import { getSchemeFields } from './helpers.js';
+import { getSchemeFields, paginateValues } from './helpers.js';
 import {
   defaultUsersScheme,
   queryUsersScheme,
@@ -23,19 +23,19 @@ import {
 } from '../schemas/users.shemas.js';
 import sql from 'mysql-bricks';
 import { usersResourceFieldsNames } from './shared/index.js';
+import { rolePermissionLevel } from '../shared/rolePermissionLevel.enum.js';
 
 export async function createUserController(req, res, next) {
   try {
     const scheme = getSchemeFields(req, defaultUsersScheme);
+    const author = await getUserBySession(req.cookies.sessionID);
 
     if (
-      await checkAuthorRolePermission(
-        req.cookies.sessionID,
-        scheme.body.role,
-        res
-      )
+      rolePermissionLevel[author.role] < rolePermissionLevel[scheme.body.role]
     ) {
-      return;
+      res.statusMessage =
+        "You don't have permission to manipulate with users with permission level manager or higher";
+      return res.status(403).send();
     }
 
     const login = req.body.name + req.body.surname;
@@ -179,33 +179,6 @@ async function setActualDepartmentManager(actualManagerID, departmentID) {
   });
 }
 
-async function checkAuthorRolePermission(authorID, roleTryingToSet, res) {
-  const author = await getUserBySession(authorID);
-
-  if (rolePermissionLevel[author.role] < rolePermissionLevel[roleTryingToSet]) {
-    res.statusMessage =
-      "You don't have permission to manipulate with users with permission level manager or higher";
-    res.status(403).send();
-    return false;
-  }
-
-  return true;
-}
-
-function paginateValues(scheme, values) {
-  if (
-    !Object.hasOwn(scheme.query, 'pageSize') ||
-    !Object.hasOwn(scheme.query, 'pageNumber')
-  ) {
-    return values;
-  }
-
-  const pageSize = scheme.query.pageSize;
-  const pageNumber = scheme.query.pageNumber;
-
-  return values.slice(pageSize * pageNumber, pageSize * (pageNumber + 1));
-}
-
 async function queryUsers(valuesToQuery) {
   const query = sql
     .select(usersResourceFieldsNames)
@@ -225,21 +198,6 @@ async function queryUsers(valuesToQuery) {
 
 async function getUserByID(id) {
   return (await queryRecords(dbTablesNamesEnum.EMPLOYEES, { id }))[0];
-}
-
-const rolePermissionLevel = Object.freeze({
-  [rolesEnum.ADMIN]: 3,
-  [rolesEnum.DEPARTMENT_MANAGER]: 2,
-  [rolesEnum.LIBRARIAN]: 1,
-});
-
-async function decreaseEmployeesAmountByOne(departmentID) {
-  await increaseValueBy(
-    dbTablesNamesEnum.DEPARTMENTS,
-    departmentID,
-    'employeesAmount',
-    -1
-  );
 }
 
 async function updateUser(id, data) {

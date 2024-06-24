@@ -152,3 +152,12 @@ export async function increaseEmployeeAmountByOne(departmentID) {
     1
   );
 }
+
+export async function decreaseEmployeesAmountByOne(departmentID) {
+  await increaseValueBy(
+    dbTablesNamesEnum.DEPARTMENTS,
+    departmentID,
+    'employeesAmount',
+    -1
+  );
+}
