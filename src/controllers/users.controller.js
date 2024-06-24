@@ -89,7 +89,7 @@ export async function queryUsersController(req, res, next) {
 
     const author = await getUserBySession(req.cookies.sessionID);
 
-    if (author.role === rolesEnum.DEPARTMENT_MANAGER) {
+    if (author.role !== rolesEnum.ADMIN) {
       if (!Object.hasOwn(scheme.query, 'role')) {
         res.statusMessage =
           "You don't have permission to see data of all users, specify role";
@@ -99,6 +99,18 @@ export async function queryUsersController(req, res, next) {
         res.statusMessage =
           "You don't have permission to see data of all users, specify departmentID";
         return res.status(403).send();
+      }
+      if (
+        rolePermissionLevel[author.role] <=
+        rolePermissionLevel[scheme.query.role]
+      ) {
+        res.statusMessage =
+          "You don't have permission to manipulate with users with your permission level or higher";
+        return res.status(403).send();
+      }
+      if (author.departmentID !== req.query.departmentID) {
+        res.statusMessage =
+          "You don't have permission to manipulate with users from other departments";
       }
     }
 
