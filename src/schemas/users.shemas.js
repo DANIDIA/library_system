@@ -1,9 +1,8 @@
 import { defineSchemeField } from './helpers/defineSchemeField.js';
 import { schemeFieldTypesEnum } from './shared/schemeFieldTypesEnum.js';
 import { dbTablesNamesEnum } from '../shared/index.js';
-import phoneValidator from 'phone';
 import { defaultPaginationScheme } from './pagination.schemas.js';
-import { emailValidator } from '../validators/email.validator.js';
+import { emailValidator, phoneNumberValidator } from '../validators/index.js';
 
 export const defaultUsersScheme = Object.freeze({
   body: {
@@ -15,7 +14,7 @@ export const defaultUsersScheme = Object.freeze({
     phoneNumber: defineSchemeField(schemeFieldTypesEnum.STRING)
       .setMinLength(9)
       .setMaxLength(12)
-      .setValidator(phoneValidator),
+      .setValidator(phoneNumberValidator),
     email: defineSchemeField(schemeFieldTypesEnum.STRING)
       .setMaxLength(45)
       .setValidator(emailValidator),
