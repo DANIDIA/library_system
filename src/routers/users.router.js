@@ -1,5 +1,9 @@
 import express from 'express';
-import { usersController } from '../controllers/index.js';
+import {
+  createUserController,
+  queryUsersController,
+  updateUserController,
+} from '../controllers/index.js';
 import { forManagerRule } from '../accessRules/index.js';
 import { authenticate, validateScheme } from '../middleware/index.js';
 import {
@@ -14,18 +18,17 @@ usersRouter.use(authenticate);
 usersRouter.use(forManagerRule('departmentID'));
 
 usersRouter.post(
-  '/add',
+  '/',
+  forManagerRule('departmentID'),
   validateScheme(defaultUsersScheme),
-  usersController.add()
+  createUserController
 );
-usersRouter.get(
-  '/get',
-  validateScheme(queryUsersScheme),
-  usersController.get()
-);
+
+usersRouter.get('/', validateScheme(queryUsersScheme), queryUsersController);
+
 usersRouter.put(
-  '/update',
+  '/:id',
+  forManagerRule('departmentID'),
   validateScheme(updateUserScheme),
-  usersController.update()
+  updateUserController
 );
-usersRouter.put('/change_status', usersController.changeStatus());
