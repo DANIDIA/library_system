@@ -12,6 +12,7 @@ import {
   endAllUserSessions,
   getDepartmentByID,
   getUserBySession,
+  hasDublicatedValue,
   increaseEmployeeAmountByOne,
   queryRecords,
 } from '../helpers/index.js';
@@ -56,6 +57,10 @@ export async function createUserController(req, res, next) {
     if (isSetNewActualDepartmentManager && department.actualMangerID !== null) {
       res.statusMessage = `Department with id ${departmentID} already has department manager`;
       return res.status(409).send();
+    }
+
+    if (!(await checkUserDuplicatedData(scheme, res))) {
+      return;
     }
 
     const id = await createRecord(dbTablesNamesEnum.EMPLOYEES, {
@@ -157,6 +162,10 @@ export async function updateUserController(req, res, next) {
       return res.status(406).send();
     }
 
+    if (!(await checkUserDuplicatedData(scheme, res))) {
+      return;
+    }
+
     await updateUser(userID, scheme.body);
 
     if (scheme.body.status === accountStatusesEnum.BLOCKED) {
@@ -220,4 +229,26 @@ async function setManagerInDepartment(id, managerID) {
   await changeRecordData(id, dbTablesNamesEnum.DEPARTMENTS, {
     actualManagerID: managerID,
   });
+}
+
+async function checkUserDuplicatedData(scheme, res) {
+  const table = dbTablesNamesEnum.EMPLOYEES;
+
+  if (!(await hasDublicatedValue(table, 'login', scheme.login))) {
+    res.statusMessage = 'Login has already exist';
+    res.status(403).send();
+    return false;
+  }
+  if (!(await hasDublicatedValue(table, 'email', scheme.email))) {
+    res.statusMessage = 'Email has already used';
+    res.status(403).send();
+    return false;
+  }
+  if (!(await hasDublicatedValue(table, 'phoneNumber', scheme.phoneNumber))) {
+    res.statusMessage = 'Phone number has already used';
+    res.status(403).send();
+    return false;
+  }
+
+  return true;
 }
