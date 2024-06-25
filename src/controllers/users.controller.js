@@ -141,6 +141,32 @@ export async function queryUsersController(req, res, next) {
   }
 }
 
+export async function getUserByIdController(req, res, next) {
+  try {
+    const author = await getUserBySession(req.cookies.sessionID);
+    const user = await getUserByID(req.params.id, usersResourceFieldsNames);
+
+    if (rolePermissionLevel[author.role] <= rolePermissionLevel[user.role]) {
+      res.statusMessage =
+        "You don't have permission to manipulate users with users of your permission level or higher";
+      return res.status(403).send();
+    }
+
+    if (
+      author.role !== rolesEnum.ADMIN &&
+      author.departmentID !== user.departmentID
+    ) {
+      res.statusMessage =
+        "You don't have permission to manipulate users from other departments";
+      return res.status(403).send();
+    }
+
+    return res.status(200).send(user);
+  } catch (e) {
+    next(e);
+  }
+}
+
 export async function updateUserController(req, res, next) {
   try {
     const scheme = getSchemeFields(req, updateUserScheme);
@@ -235,8 +261,10 @@ async function queryUsers(valuesToQuery) {
   return (await connection.query(query.text, query.values))[0];
 }
 
-async function getUserByID(id) {
-  return (await queryRecords(dbTablesNamesEnum.EMPLOYEES, { id }))[0];
+async function getUserByID(id, rowsToSelect = ['*']) {
+  return (
+    await queryRecords(dbTablesNamesEnum.EMPLOYEES, { id }, rowsToSelect)
+  )[0];
 }
 
 async function updateUser(id, data) {
