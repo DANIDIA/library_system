@@ -9,6 +9,7 @@ import {
   connection,
   createRecord,
   decreaseEmployeesAmountByOne,
+  deleteRecord,
   endAllUserSessions,
   getDepartmentByID,
   getUserBySession,
@@ -102,13 +103,14 @@ export async function queryUsersController(req, res, next) {
     delete valuesToQuery.pageSize;
     delete valuesToQuery.pageNumber;
 
-    if (Object.hasOwn(valuesToQuery, 'status')){
+    if (Object.hasOwn(valuesToQuery, 'status')) {
       valuesToQuery.status = valuesToQuery.status === 'true';
     }
 
-    if (Object.hasOwn(valuesToQuery, 'departmentID') &&
-        valuesToQuery.departmentID === 'null'
-    ){
+    if (
+      Object.hasOwn(valuesToQuery, 'departmentID') &&
+      valuesToQuery.departmentID === 'null'
+    ) {
       valuesToQuery.departmentID = null;
     }
 
@@ -248,6 +250,53 @@ export async function updateUserController(req, res, next) {
   }
 }
 
+export async function deleteUserController(req, res, next) {
+  try {
+    const user = await getUserByID(req.params.id);
+    const author = await getUserBySession(req.cookies.sessionID);
+
+    if (rolePermissionLevel[author.role] < rolePermissionLevel[user.role]) {
+      res.statusMessage =
+        "You don't have permission to manipulate with users of your permission level or higher";
+      return res.status(403).send();
+    }
+
+    if (
+      author.role !== rolesEnum.ADMIN &&
+      user.departmentID !== author.departmentID
+    ) {
+      res.statusMessage =
+        "You don't have permission to manipulate users from other departments";
+      return res.status(403).send();
+    }
+
+    if ((await getAmountOfCreatedReadersByUser(req.params.id)) > 0) {
+      res.statusMessage = 'User cannot be deleted, it have created readers';
+      return res.status(409).send();
+    }
+
+    if ((await getAmountOfGivenBooksByUser(req.params.id)) > 0) {
+      res.statusMessage = 'User cannot be deleted, it have gave books';
+      return res.status(409).send();
+    }
+
+    if (user.departmentID !== null) {
+      if (user.role === rolesEnum.DEPARTMENT_MANAGER) {
+        await setActualDepartmentManager(null, user.departmentID);
+      }
+
+      await decreaseEmployeesAmountByOne(user.departmentID);
+    }
+
+    await endAllUserSessions(req.params.id);
+    await deleteRecord(req.params.id, dbTablesNamesEnum.EMPLOYEES);
+
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+}
+
 async function setActualDepartmentManager(actualManagerID, departmentID) {
   await changeRecordData(departmentID, dbTablesNamesEnum.DEPARTMENTS, {
     actualManagerID,
@@ -306,4 +355,20 @@ async function generateLogin(userName, userSurname) {
   ).length;
 
   return userName + userSurname + amountOfNamesakes;
+}
+
+async function getAmountOfCreatedReadersByUser(id) {
+  return (
+    await queryRecords(dbTablesNamesEnum.READERS, {
+      recordAuthorID: id,
+    })
+  ).length;
+}
+
+async function getAmountOfGivenBooksByUser(id) {
+  return (
+    await queryRecords(dbTablesNamesEnum.GIVEN_BOOKS, {
+      recordAuthorID: id,
+    })
+  ).length;
 }

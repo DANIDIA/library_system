@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   createUserController,
+  deleteUserController,
   getUserByIdController,
   queryUsersController,
   updateUserController,
@@ -38,4 +39,10 @@ usersRouter.put(
   forManagerRule('departmentID'),
   validateScheme(updateUserScheme),
   updateUserController
+);
+
+usersRouter.delete(
+  '/:id',
+  validateScheme(accessUserScheme),
+  deleteUserController
 );
