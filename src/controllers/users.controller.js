@@ -102,6 +102,16 @@ export async function queryUsersController(req, res, next) {
     delete valuesToQuery.pageSize;
     delete valuesToQuery.pageNumber;
 
+    if (Object.hasOwn(valuesToQuery, 'status')){
+      valuesToQuery.status = valuesToQuery.status === 'true';
+    }
+
+    if (Object.hasOwn(valuesToQuery, 'departmentID') &&
+        valuesToQuery.departmentID === 'null'
+    ){
+      valuesToQuery.departmentID = null;
+    }
+
     const author = await getUserBySession(req.cookies.sessionID);
 
     if (author.role !== rolesEnum.ADMIN) {
@@ -129,7 +139,7 @@ export async function queryUsersController(req, res, next) {
         return res.status(403).send();
       }
     }
-
+    console.log(valuesToQuery);
     const results = await queryUsers(valuesToQuery);
 
     res.status(200).send({
