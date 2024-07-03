@@ -14,3 +14,17 @@ export function getSchemeFields(request, scheme) {
 
   return result;
 }
+
+export function paginateValues(scheme, values) {
+  if (
+    !Object.hasOwn(scheme.query, 'pageSize') ||
+    !Object.hasOwn(scheme.query, 'pageNumber')
+  ) {
+    return values;
+  }
+
+  const pageSize = scheme.query.pageSize;
+  const pageNumber = scheme.query.pageNumber;
+
+  return values.slice(pageSize * pageNumber, pageSize * (pageNumber + 1));
+}

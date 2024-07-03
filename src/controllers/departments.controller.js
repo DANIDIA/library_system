@@ -3,9 +3,10 @@ import {
   createRecord,
   deleteRecord,
   getUserBySession,
-  increaseValueBy,
-  hasDublicatedValue,
+  hasDuplicatedValue,
   queryRecords,
+  getDepartmentByID,
+  increaseEmployeeAmountByOne,
 } from '../helpers/index.js';
 import { dbTablesNamesEnum, rolesEnum } from '../shared/index.js';
 import {
@@ -198,14 +199,8 @@ export async function deleteDepartmentController(req, res, next) {
   }
 }
 
-async function getDepartmentByID(id, fieldsToShow = ['*']) {
-  return (
-    await queryRecords(dbTablesNamesEnum.DEPARTMENTS, { id }, fieldsToShow)
-  )[0];
-}
-
 async function isContactNumberDuplicated(value) {
-  return await hasDublicatedValue(
+  return await hasDuplicatedValue(
     dbTablesNamesEnum.DEPARTMENTS,
     'contactNumber',
     value
@@ -216,13 +211,4 @@ async function setDepartmentIdOfManager(managerID, departmentID) {
   await changeRecordData(managerID, dbTablesNamesEnum.EMPLOYEES, {
     departmentID,
   });
-}
-
-async function increaseEmployeeAmountByOne(departmentID) {
-  await increaseValueBy(
-    dbTablesNamesEnum.DEPARTMENTS,
-    departmentID,
-    'employeesAmount',
-    1
-  );
 }

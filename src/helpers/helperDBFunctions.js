@@ -62,7 +62,9 @@ export async function allRecordsExist(tableName, ...IDs) {
     .where(condition)
     .toParams({ placeholder: '?' });
 
-  const recordsAmountExist = (await connection(query))[0][0].recordsAmount;
+  const recordsAmountExist = (
+    await connection.query(query.text, query.values)
+  )[0][0].recordsAmount;
 
   return recordsAmountExist === IDs.length;
 }
@@ -115,7 +117,7 @@ export async function deleteRecord(id, table) {
   await connection.query(query.text, query.values);
 }
 
-export async function hasDublicatedValue(table, field, value) {
+export async function hasDuplicatedValue(table, field, value) {
   const query = sql
     .select()
     .from(table)
@@ -136,4 +138,28 @@ export async function increaseValueBy(table, id, field, value) {
     .toParams({ placeholder: '?' });
 
   await connection.query(query.text, query.values);
+}
+
+export async function getDepartmentByID(id, fieldsToShow = ['*']) {
+  return (
+    await queryRecords(dbTablesNamesEnum.DEPARTMENTS, { id }, fieldsToShow)
+  )[0];
+}
+
+export async function increaseEmployeeAmountByOne(departmentID) {
+  await increaseValueBy(
+    dbTablesNamesEnum.DEPARTMENTS,
+    departmentID,
+    'employeesAmount',
+    1
+  );
+}
+
+export async function decreaseEmployeesAmountByOne(departmentID) {
+  await increaseValueBy(
+    dbTablesNamesEnum.DEPARTMENTS,
+    departmentID,
+    'employeesAmount',
+    -1
+  );
 }
