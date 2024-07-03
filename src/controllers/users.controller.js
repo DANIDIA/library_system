@@ -141,7 +141,7 @@ export async function queryUsersController(req, res, next) {
         return res.status(403).send();
       }
     }
-    console.log(valuesToQuery);
+
     const results = await queryUsers(valuesToQuery);
 
     res.status(200).send({
@@ -156,7 +156,11 @@ export async function queryUsersController(req, res, next) {
 export async function getUserByIdController(req, res, next) {
   try {
     const author = await getUserBySession(req.cookies.sessionID);
-    const user = await getUserByID(req.params.id, usersResourceFieldsNames);
+    const user = await getUserByID(req.params.id, [
+      ...usersResourceFieldsNames,
+      'login',
+      'password',
+    ]);
 
     if (rolePermissionLevel[author.role] <= rolePermissionLevel[user.role]) {
       res.statusMessage =
@@ -174,6 +178,32 @@ export async function getUserByIdController(req, res, next) {
     }
 
     return res.status(200).send(user);
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getUserAuthDataController(req, res, next) {
+  try {
+    const user = await getUserByID(req.params.id);
+    const author = await getUserBySession(req.cookies.sessionID);
+
+    if (rolePermissionLevel[author.role] < rolePermissionLevel[user.role]) {
+      res.statusMessage =
+        "You don't have permission to manipulate with users of your permission level or higher";
+      return res.status(403).send();
+    }
+
+    if (
+      author.role !== rolesEnum.ADMIN &&
+      user.departmentID !== author.departmentID
+    ) {
+      res.statusMessage =
+        "You don't have permission to manipulate users from other departments";
+      return res.status(403).send();
+    }
+
+    res.status(200).send({ login: user.login, password: user.password });
   } catch (e) {
     next(e);
   }

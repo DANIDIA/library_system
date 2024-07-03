@@ -2,6 +2,7 @@ import express from 'express';
 import {
   createUserController,
   deleteUserController,
+  getUserAuthDataController,
   getUserByIdController,
   queryUsersController,
   updateUserController,
@@ -32,6 +33,12 @@ usersRouter.get(
   '/:id',
   validateScheme(accessUserScheme),
   getUserByIdController
+);
+
+usersRouter.get(
+  '/:id/auth-data',
+  validateScheme(accessUserScheme),
+  getUserAuthDataController
 );
 
 usersRouter.put(
