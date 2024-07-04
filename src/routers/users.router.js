@@ -1,12 +1,16 @@
 import express from 'express';
 import {
   createUserController,
+  deleteUserController,
+  getUserAuthDataController,
+  getUserByIdController,
   queryUsersController,
   updateUserController,
 } from '../controllers/index.js';
 import { forManagerRule } from '../accessRules/index.js';
 import { authenticate, validateScheme } from '../middleware/index.js';
 import {
+  accessUserScheme,
   defaultUsersScheme,
   queryUsersScheme,
   updateUserScheme,
@@ -25,9 +29,27 @@ usersRouter.post(
 
 usersRouter.get('/', validateScheme(queryUsersScheme), queryUsersController);
 
+usersRouter.get(
+  '/:id',
+  validateScheme(accessUserScheme),
+  getUserByIdController
+);
+
+usersRouter.get(
+  '/:id/auth-data',
+  validateScheme(accessUserScheme),
+  getUserAuthDataController
+);
+
 usersRouter.put(
   '/:id',
   forManagerRule('departmentID'),
   validateScheme(updateUserScheme),
   updateUserController
+);
+
+usersRouter.delete(
+  '/:id',
+  validateScheme(accessUserScheme),
+  deleteUserController
 );
