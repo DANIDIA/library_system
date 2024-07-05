@@ -175,7 +175,12 @@ export async function getAmountDetailsOfBookInDepartment(bookID, departmentID) {
     )
     .toParams({ placeholder: '?' });
 
-  return (await connection.query(query.text, query.values))[0][0];
+  return (
+    (await connection.query(query.text, query.values))[0][0] || {
+      totalAmount: 0,
+      givenAmount: 0,
+    }
+  );
 }
 
 export async function changeGivenBook(
@@ -200,7 +205,7 @@ export async function changeGivenBook(
 
   const query = sql
     .update(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS)
-    .set('givenBooks', `givenBooks + ${deltaAmount}`)
+    .set('givenAmount', sql(`givenAmount + ${deltaAmount}`))
     .where(
       sql.and(sql.eq('departmentID', departmentID), sql.eq('bookID', bookID))
     )
