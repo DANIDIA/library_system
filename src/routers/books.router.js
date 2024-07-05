@@ -1,14 +1,84 @@
 import * as express from 'express';
-import { booksController } from '../controllers/index.js';
-import { authenticate } from '../middleware/index.js';
+import { authenticate, validateScheme } from '../middleware/index.js';
+import {
+  createBookController,
+  deleteBookController,
+  getBookAmountDetailsInDepartmentsController,
+  getBookAmountDetailsInSingleDepartmentController,
+  getBookByIdController,
+  getBookGivenAmountController,
+  getBookTotalAmountController,
+  giveBookToReaderController,
+  queryBooksController,
+  setBookAmountInDepartmentController,
+  updateBookController,
+} from '../controllers/index.js';
+import { forUsersInDepartment } from '../accessRules/index.js';
+import {
+  accessBookScheme,
+  bookAmountDetailsForSingleDepartmentScheme,
+  defaultBooksScheme,
+  giveBookToReaderScheme,
+  queryBooksScheme,
+  setBookAmountInDepartmentScheme,
+} from '../schemas/index.js';
 
 export const booksRouter = express.Router();
 
 booksRouter.use(authenticate);
 
-booksRouter.post('/add', booksController.add());
-booksRouter.get('/get', booksController.get());
-booksRouter.get('/given_amount', booksController.givenAmount());
-booksRouter.post('/give_to_reader', booksController.giveToReader());
-booksRouter.put('/update', booksController.update());
-booksRouter.delete('/remove', booksController.remove());
+booksRouter.post('/', validateScheme(defaultBooksScheme), createBookController);
+
+booksRouter.post(
+  '/:bookID/give-to-reader/:readerID',
+  validateScheme(giveBookToReaderScheme),
+  forUsersInDepartment(false),
+  giveBookToReaderController
+);
+
+booksRouter.get('/', validateScheme(queryBooksScheme), queryBooksController);
+
+booksRouter.get(
+  '/:id',
+  validateScheme(accessBookScheme),
+  getBookByIdController
+);
+
+booksRouter.get(
+  '/:id/total-amount',
+  validateScheme(accessBookScheme),
+  getBookTotalAmountController
+);
+
+booksRouter.get(
+  '/:id/given-amount',
+  validateScheme(accessBookScheme),
+  getBookGivenAmountController
+);
+
+booksRouter.get(
+  '/:id/amount-details-in-departments',
+  validateScheme(accessBookScheme),
+  getBookAmountDetailsInDepartmentsController
+);
+
+booksRouter.get(
+  '/:bookID/amount-details-in-departments/:departmentID',
+  validateScheme(bookAmountDetailsForSingleDepartmentScheme),
+  getBookAmountDetailsInSingleDepartmentController
+);
+
+booksRouter.patch(
+  '/:bookID/set-amount-in-department/:departmentID',
+  validateScheme(setBookAmountInDepartmentScheme),
+  forUsersInDepartment(),
+  setBookAmountInDepartmentController
+);
+
+booksRouter.put('/:id', validateScheme(accessBookScheme), updateBookController);
+
+booksRouter.delete(
+  '/:id',
+  validateScheme(accessBookScheme),
+  deleteBookController
+);

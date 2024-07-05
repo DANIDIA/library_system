@@ -6,18 +6,18 @@ import { defaultPaginationScheme } from './pagination.schemas.js';
 export const defaultBooksScheme = Object.freeze({
   body: {
     title: defineSchemeField(schemeFieldTypesEnum.STRING).setMaxLength(45),
-    authors: defineSchemeField(schemeFieldTypesEnum.NUMBER_ARRAY).setCheckAsID(
-      dbTablesNamesEnum.AUTHORS
-    ),
+    authorsIDs: defineSchemeField(
+      schemeFieldTypesEnum.NUMBER_ARRAY
+    ).setCheckAsID(dbTablesNamesEnum.AUTHORS),
   },
 });
 
 export const queryBooksScheme = Object.freeze({
   query: {
     title: defineSchemeField(schemeFieldTypesEnum.STRING).setRequired(false),
-    authors: defineSchemeField(schemeFieldTypesEnum.STRING_ARRAY).setRequired(
-      false
-    ),
+    authorsIDs: defineSchemeField(
+      schemeFieldTypesEnum.STRING_ARRAY
+    ).setRequired(false),
     ...defaultPaginationScheme.query,
   },
 });
