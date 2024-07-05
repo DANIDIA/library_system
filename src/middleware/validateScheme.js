@@ -68,6 +68,8 @@ function typeConfigCheck(res, fieldName, body, { type }) {
       res.status(400).send();
       return false;
     }
+
+    return true;
   }
 
   if (type === schemeFieldTypesEnum.STRING_ARRAY) {
@@ -79,6 +81,8 @@ function typeConfigCheck(res, fieldName, body, { type }) {
       res.statusMessage(400).send();
       return false;
     }
+
+    return true;
   }
 
   if (
@@ -146,6 +150,8 @@ async function checkAsIdConfigCheck(res, fieldName, body, { type, checkAsID }) {
         res.status(400).send();
         return false;
       }
+
+      return true;
     }
 
     if (type === schemeFieldTypesEnum.STRING_ARRAY) {
@@ -154,6 +160,8 @@ async function checkAsIdConfigCheck(res, fieldName, body, { type, checkAsID }) {
         res.status(400).send();
         return false;
       }
+
+      return true;
     }
 
     if (type === schemeFieldTypesEnum.NUMBER_OR_NULL) {
