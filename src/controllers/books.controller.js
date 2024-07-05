@@ -1,20 +1,17 @@
 import sql from 'mysql-bricks';
 import {
+  changeGivenBook,
   changeRecordData,
   connection,
   createRecord,
   deleteRecord,
+  getAmountDetailsOfBookInDepartment,
+  getReaderByID,
   queryRecords,
 } from '../helpers/index.js';
 import { MAX_BOOKS_FOR_READER } from '../shared/constants.js';
 import { accountStatusesEnum, dbTablesNamesEnum } from '../shared/index.js';
-import {
-  changeGivenBook,
-  getAmountDetailsOfBookInDepartment,
-  getReaderByID,
-  getSchemeFields,
-  paginateValues,
-} from './helpers.js';
+import { getSchemeFields, paginateValues } from './helpers.js';
 import {
   bookAmountDetailsForSingleDepartmentScheme,
   defaultBooksScheme,
@@ -31,7 +28,7 @@ export async function createBookController(req, res, next) {
       title: scheme.body.title,
     });
 
-    await addBookAuthors(bookID, scheme.body.authors);
+    await addBookAuthors(bookID, scheme.body.authorsIDs);
 
     res.status(201).send();
   } catch (e) {
@@ -52,7 +49,7 @@ export async function giveBookToReaderController(req, res, next) {
       return res.status(409).send();
     }
 
-    const reader = getReaderByID(readerID);
+    const reader = await getReaderByID(readerID);
 
     if (reader.status === accountStatusesEnum.BLOCKED) {
       res.statusMessage = `Reader with id '${scheme.params.readerID}' is blocked`;
