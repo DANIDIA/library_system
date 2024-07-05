@@ -70,6 +70,17 @@ function typeConfigCheck(res, fieldName, body, { type }) {
     }
   }
 
+  if (type === schemeFieldTypesEnum.STRING_ARRAY) {
+    if (
+      !Array.isArray(fieldValue) ||
+      !fieldValue.every((value) => typeof value === 'string')
+    ) {
+      res.statusMessage = `There are non-string values in '${fieldName}' array`;
+      res.statusMessage(400).send();
+      return false;
+    }
+  }
+
   if (
     (type === schemeFieldTypesEnum.NUMBER_OR_NULL &&
       !(typeof fieldValue === 'number' || fieldValue === null)) ||
@@ -130,6 +141,14 @@ async function checkAsIdConfigCheck(res, fieldName, body, { type, checkAsID }) {
 
   if (checkAsID) {
     if (type === schemeFieldTypesEnum.NUMBER_ARRAY) {
+      if (!(await allRecordsExist(checkAsID.tableForCheck, ...fieldValue))) {
+        res.statusMessage = 'Some IDs/ID in array do not exist';
+        res.status(400).send();
+        return false;
+      }
+    }
+
+    if (type === schemeFieldTypesEnum.STRING_ARRAY) {
       if (!(await allRecordsExist(checkAsID.tableForCheck, ...fieldValue))) {
         res.statusMessage = 'Some IDs/ID in array do not exist';
         res.status(400).send();
