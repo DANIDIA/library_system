@@ -7,6 +7,7 @@ import {
   deleteRecord,
   getAmountDetailsOfBookInDepartment,
   getReaderByID,
+  getUserBySession,
   queryRecords,
 } from '../helpers/index.js';
 import { MAX_BOOKS_FOR_READER } from '../shared/constants.js';
@@ -40,8 +41,8 @@ export async function giveBookToReaderController(req, res, next) {
   try {
     const scheme = getSchemeFields(req, giveBookToReaderScheme);
 
-    const bookID = scheme.body.bookID;
-    const readerID = scheme.body.readerID;
+    const bookID = scheme.params.bookID;
+    const readerID = scheme.params.readerID;
     const departmentID = scheme.body.departmentID;
 
     if ((await getBookAmountInDepartment(bookID, departmentID)) <= 0) {
@@ -61,7 +62,16 @@ export async function giveBookToReaderController(req, res, next) {
       return res.status(409).send();
     }
 
+    const authorID = (await getUserBySession(req.cookies.sessionID)).id;
+
     await changeGivenBook(bookID, readerID, departmentID);
+    await createRecord(dbTablesNamesEnum.GIVEN_BOOKS, {
+      bookID,
+      readerID,
+      departmentID,
+      recordAuthorID: authorID,
+      giveDateTime: sql('NOW()'),
+    });
 
     return res.status(200).send();
   } catch (e) {
