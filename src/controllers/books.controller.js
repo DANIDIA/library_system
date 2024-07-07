@@ -111,9 +111,9 @@ export async function getBookByIdController(req, res, next) {
 
 export async function getBookTotalAmountController(req, res, next) {
   try {
-    return res
-      .status(200)
-      .send((await getBookRecordByID(req.params.id)).totalAmount);
+    return res.status(200).send({
+      totalAmount: (await getBookRecordByID(req.params.id)).totalAmount,
+    });
   } catch (e) {
     next(e);
   }
@@ -123,7 +123,9 @@ export async function getBookGivenAmountController(req, res, next) {
   try {
     return res
       .status(200)
-      .send((await getBookRecordByID(req.params.id)).givenAmount);
+      .send({
+        givenAmount: (await getBookRecordByID(req.params.id)).givenAmount,
+      });
   } catch (e) {
     next(e);
   }
