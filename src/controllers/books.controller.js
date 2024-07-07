@@ -121,11 +121,9 @@ export async function getBookTotalAmountController(req, res, next) {
 
 export async function getBookGivenAmountController(req, res, next) {
   try {
-    return res
-      .status(200)
-      .send({
-        givenAmount: (await getBookRecordByID(req.params.id)).givenAmount,
-      });
+    return res.status(200).send({
+      givenAmount: (await getBookRecordByID(req.params.id)).givenAmount,
+    });
   } catch (e) {
     next(e);
   }
@@ -151,17 +149,19 @@ export async function getBookAmountDetailsInSingleDepartmentController(
   next
 ) {
   try {
+    const departmentID = req.params.departmentID;
+
+    const amountDetails = (
+      await queryRecords(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS, req.params, [
+        'departmentID',
+        'totalAmount',
+        'givenAmount',
+      ])
+    )[0];
+
     return res
       .status(200)
-      .send(
-        (
-          await queryRecords(
-            dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS,
-            req.params,
-            ['departmentID', 'totalAmount', 'givenAmount']
-          )
-        )[0]
-      );
+      .send(amountDetails || { departmentID, totalAmount: 0, givenAmount: 0 });
   } catch (e) {
     next(e);
   }
