@@ -82,11 +82,20 @@ export async function giveBookToReaderController(req, res, next) {
 export async function queryBooksController(req, res, next) {
   try {
     const scheme = getSchemeFields(req, queryBooksScheme);
+    const authorsIDs = scheme.query.authorsIDs;
 
-    const booksIDs = await queryBooksIDs(scheme.query);
+    if (authorsIDs && !Array.isArray(authorsIDs)) {
+      scheme.query.authorsIDs = [authorsIDs];
+    }
+
     return res
       .status(200)
-      .send(paginateValues(scheme, await getBooksResources(booksIDs)));
+      .send(
+        paginateValues(
+          scheme,
+          await getBooksResources(await queryBooksIDs(scheme.query))
+        )
+      );
   } catch (e) {
     next(e);
   }
@@ -245,9 +254,9 @@ async function getBookAmountInDepartment(bookID, departmentID) {
   return bookAmountDetails.totalAmount - bookAmountDetails.givenAmount;
 }
 
-async function queryBooksIDs({ title, authors }) {
+async function queryBooksIDs({ title, authorsIDs = [] }) {
   let query = sql
-    .select('id')
+    .select('bookID')
     .from(dbTablesNamesEnum.BOOK_AUTHORS)
     .join(dbTablesNamesEnum.BOOKS)
     .on(
@@ -255,15 +264,23 @@ async function queryBooksIDs({ title, authors }) {
       `${dbTablesNamesEnum.BOOK_AUTHORS}.bookID`
     );
 
-  const conditions = authors.map((authorID) => sql.eq('authorID', authorID));
+  const conditions = [];
 
   title && conditions.push(sql.eq('title', title));
+  authorsIDs.length > 0 &&
+    conditions.push(sql.or(authorsIDs.map((id) => sql.eq('authorID', id))));
 
-  query = conditions.length > 0 ? query.where(sql.and(conditions)) : query;
+  if (conditions.length > 0) {
+    query = query.where(sql.and(conditions));
+  }
 
   query = query.toParams({ placeholder: '?' });
 
-  return (await connection.query(query.text, query.values))[0];
+  query.text += ` GROUP BY bookID HAVING COUNT(*) >= ${authorsIDs.length}`;
+
+  return (await connection.query(query.text, query.values))[0].map(
+    (record) => record.bookID
+  );
 }
 
 async function getBooksResources(booksIDs) {
@@ -277,11 +294,11 @@ async function getBooksResources(booksIDs) {
       `${dbTablesNamesEnum.BOOKS}.id`,
       `${dbTablesNamesEnum.BOOK_AUTHORS}.bookID`
     )
-    .where(sql.or(booksIDs.map((id) => sql.eq('id', id))))
+    .where(sql.or(booksIDs.map((id) => sql.eq('bookID', id))))
     .toParams({ placeholder: '?' });
 
   const booksData = (
-    await connection.qeury(queryBooks.text, queryBooks.values)
+    await connection.query(queryBooks.text, queryBooks.values)
   )[0];
   const results = [];
 
