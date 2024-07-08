@@ -61,7 +61,7 @@ export const setBookAmountInDepartmentScheme = Object.freeze({
     ),
   },
   body: {
-    bookAmount: defineSchemeField(schemeFieldTypesEnum.NUMBER).setMinValue(0),
+    totalAmount: defineSchemeField(schemeFieldTypesEnum.NUMBER).setMinValue(0),
   },
 });
 

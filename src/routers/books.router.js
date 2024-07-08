@@ -69,7 +69,7 @@ booksRouter.get(
 );
 
 booksRouter.patch(
-  '/:bookID/set-amount-in-department/:departmentID',
+  '/:bookID/total-amount/:departmentID',
   validateScheme(setBookAmountInDepartmentScheme),
   forUsersInDepartment(),
   setBookAmountInDepartmentController
