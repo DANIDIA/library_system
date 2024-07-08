@@ -8,16 +8,17 @@ import {
   getAmountDetailsOfBookInDepartment,
   getReaderByID,
   getUserBySession,
+  increaseValueBy,
   queryRecords,
 } from '../helpers/index.js';
 import { MAX_BOOKS_FOR_READER } from '../shared/constants.js';
 import { accountStatusesEnum, dbTablesNamesEnum } from '../shared/index.js';
 import { getSchemeFields, paginateValues } from './helpers.js';
 import {
-  bookAmountDetailsForSingleDepartmentScheme,
   defaultBooksScheme,
   giveBookToReaderScheme,
   queryBooksScheme,
+  setBookAmountInDepartmentScheme,
   updateBookScheme,
 } from '../schemas/index.js';
 
@@ -169,25 +170,43 @@ export async function getBookAmountDetailsInSingleDepartmentController(
 
 export async function setBookAmountInDepartmentController(req, res, next) {
   try {
-    const scheme = getSchemeFields(bookAmountDetailsForSingleDepartmentScheme);
+    const scheme = getSchemeFields(req, setBookAmountInDepartmentScheme);
 
     const bookInDepartmentRecord = (
       await queryRecords(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS, scheme.params)
     )[0];
 
+    let deltaAmountOfBooks;
+
     if (bookInDepartmentRecord) {
       await changeRecordData(
         bookInDepartmentRecord.id,
         dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS,
-        scheme.params
+        scheme.body
       );
-      return res.status(200).send();
+      deltaAmountOfBooks =
+        scheme.body.totalAmount - bookInDepartmentRecord.totalAmount;
+    } else {
+      await createRecord(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS, {
+        ...scheme.params,
+        ...scheme.body,
+      });
+      deltaAmountOfBooks = scheme.body.totalAmount;
     }
 
-    await createRecord(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS, {
-      ...scheme.params,
-      ...scheme.body,
-    });
+    await increaseValueBy(
+      dbTablesNamesEnum.BOOKS,
+      scheme.params.bookID,
+      'totalAmount',
+      deltaAmountOfBooks
+    );
+
+    await increaseValueBy(
+      dbTablesNamesEnum.DEPARTMENTS,
+      scheme.params.departmentID,
+      'totalBooksAmount',
+      deltaAmountOfBooks
+    );
 
     res.status(200).send();
   } catch (e) {
