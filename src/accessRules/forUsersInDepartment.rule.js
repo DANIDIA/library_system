@@ -9,7 +9,7 @@ export function forUsersInDepartment(departmentIdInParams = true) {
 
     if (
       author.role !== rolesEnum.ADMIN &&
-      objectToCheck.departmentID !== author.departmentID
+      +objectToCheck.departmentID !== author.departmentID
     ) {
       res.statusMessage =
         'You do not have permission as employee of another department';
