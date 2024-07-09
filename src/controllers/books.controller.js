@@ -6,6 +6,7 @@ import {
   createRecord,
   deleteRecord,
   getAmountDetailsOfBookInDepartment,
+  getBooksResources,
   getReaderByID,
   getUserBySession,
   increaseValueBy,
@@ -91,12 +92,10 @@ export async function queryBooksController(req, res, next) {
 
     const results = await getBooksResources(await queryBooksIDs(scheme.query));
 
-    return res
-      .status(200)
-      .send({
-        allResultsAmount: results.length,
-        results: paginateValues(results),
-      });
+    return res.status(200).send({
+      allResultsAmount: results.length,
+      results: paginateValues(results),
+    });
   } catch (e) {
     next(e);
   }
@@ -302,43 +301,6 @@ async function queryBooksIDs({ title, authorsIDs = [] }) {
   return (await connection.query(query.text, query.values))[0].map(
     (record) => record.bookID
   );
-}
-
-async function getBooksResources(booksIDs) {
-  if (booksIDs.length === 0) return [];
-
-  const queryBooks = sql
-    .select('bookID', 'title', 'authorID')
-    .from(dbTablesNamesEnum.BOOK_AUTHORS)
-    .join(dbTablesNamesEnum.BOOKS)
-    .on(
-      `${dbTablesNamesEnum.BOOKS}.id`,
-      `${dbTablesNamesEnum.BOOK_AUTHORS}.bookID`
-    )
-    .where(sql.or(booksIDs.map((id) => sql.eq('bookID', id))))
-    .toParams({ placeholder: '?' });
-
-  const booksData = (
-    await connection.query(queryBooks.text, queryBooks.values)
-  )[0];
-  const results = [];
-
-  booksData.forEach((data) => {
-    const resource = results.find((resource) => data.bookID === resource.id);
-
-    if (resource) {
-      resource.authorsIDs.push(data.authorID);
-      return;
-    }
-
-    results.push({
-      id: data.bookID,
-      title: data.title,
-      authorsIDs: [data.authorID],
-    });
-  });
-
-  return results;
 }
 
 async function getBookResourceByID(bookID) {
