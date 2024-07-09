@@ -52,13 +52,11 @@ export async function recordExist(recordID, tableName) {
 export async function allRecordsExist(tableName, ...IDs) {
   if (IDs.length === 0) return true;
 
-  let query = sql.select('COUNT(id) as recordsAmount').from(tableName);
-
-  IDs.forEach((id) => {
-    query.where(sql.eq('id', id));
-  });
-
-  query = query.toParams({ placeholder: '?' });
+  let query = sql
+    .select('COUNT(id) as recordsAmount')
+    .from(tableName)
+    .where(sql.or(IDs.map((id) => sql.eq('id', id))))
+    .toParams({ placeholder: '?' });
 
   const recordsAmountExist = (
     await connection.query(query.text, query.values)
