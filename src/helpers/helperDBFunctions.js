@@ -160,8 +160,10 @@ export async function decreaseEmployeesAmountByOne(departmentID) {
   );
 }
 
-export async function getReaderByID(id) {
-  return (await queryRecords(dbTablesNamesEnum.READERS, { id }))[0];
+export async function getReaderByID(id, rowsToSelect = ['*']) {
+  return (
+    await queryRecords(dbTablesNamesEnum.READERS, { id }, rowsToSelect)
+  )[0];
 }
 
 export async function getAmountDetailsOfBookInDepartment(bookID, departmentID) {
@@ -210,4 +212,41 @@ export async function changeGivenBook(
     .toParams({ placeholder: '?' });
 
   await connection.query(query.text, query.values);
+}
+
+export async function getBooksResources(booksIDs) {
+  if (booksIDs.length === 0) return [];
+
+  const queryBooks = sql
+    .select('bookID', 'title', 'authorID')
+    .from(dbTablesNamesEnum.BOOK_AUTHORS)
+    .join(dbTablesNamesEnum.BOOKS)
+    .on(
+      `${dbTablesNamesEnum.BOOKS}.id`,
+      `${dbTablesNamesEnum.BOOK_AUTHORS}.bookID`
+    )
+    .where(sql.or(booksIDs.map((id) => sql.eq('bookID', id))))
+    .toParams({ placeholder: '?' });
+
+  const booksData = (
+    await connection.query(queryBooks.text, queryBooks.values)
+  )[0];
+  const results = [];
+
+  booksData.forEach((data) => {
+    const resource = results.find((resource) => data.bookID === resource.id);
+
+    if (resource) {
+      resource.authorsIDs.push(data.authorID);
+      return;
+    }
+
+    results.push({
+      id: data.bookID,
+      title: data.title,
+      authorsIDs: [data.authorID],
+    });
+  });
+
+  return results;
 }
