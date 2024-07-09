@@ -381,7 +381,7 @@ async function deleteBookFromDepartments(bookID) {
   bookAmountInDepartments.forEach((value) => {
     const query = sql
       .update(dbTablesNamesEnum.DEPARTMENTS)
-      .set('totalBooksAmount', `totalBooksAmount - ${value.totalAmount}`)
+      .set('totalBooksAmount', sql(`totalBooksAmount - ${value.totalAmount}`))
       .where(sql.eq('id', value.departmentID))
       .toParams({ placeholder: '?' });
 
