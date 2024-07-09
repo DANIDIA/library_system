@@ -1,7 +1,7 @@
 import { defineSchemeField } from './helpers/defineSchemeField.js';
 import { schemeFieldTypesEnum } from './shared/schemeFieldTypesEnum.js';
-import { phoneNumberValidator, emailValidator } from '../validators/index';
 import { dbTablesNamesEnum } from '../shared/index.js';
+import { emailValidator, phoneNumberValidator } from '../validators/index.js';
 
 export const defaultReadersScheme = Object.freeze({
   body: {
@@ -11,11 +11,11 @@ export const defaultReadersScheme = Object.freeze({
       .setMinValue(9)
       .setMaxLength(12)
       .setValidator(phoneNumberValidator),
+    email: defineSchemeField(schemeFieldTypesEnum.STRING)
+      .setMaxLength(45)
+      .setValidator(emailValidator),
+    status: defineSchemeField(schemeFieldTypesEnum.BOOL),
   },
-  email: defineSchemeField(schemeFieldTypesEnum.STRING)
-    .setMaxLength(45)
-    .setValidator(emailValidator),
-  status: defineSchemeField(schemeFieldTypesEnum.BOOL),
 });
 
 export const queryReadersScheme = Object.freeze({
