@@ -1,235 +1,408 @@
 import sql from 'mysql-bricks';
-import { connection, getUserBySession, recordExist } from '../helpers/index.js';
+import {
+  changeGivenBook,
+  changeRecordData,
+  connection,
+  createRecord,
+  deleteRecord,
+  getAmountDetailsOfBookInDepartment,
+  getReaderByID,
+  getUserBySession,
+  increaseValueBy,
+  queryRecords,
+} from '../helpers/index.js';
 import { MAX_BOOKS_FOR_READER } from '../shared/constants.js';
 import { accountStatusesEnum, dbTablesNamesEnum } from '../shared/index.js';
-import { DefaultController } from './default.controller.js';
+import { getSchemeFields, paginateValues } from './helpers.js';
+import {
+  defaultBooksScheme,
+  giveBookToReaderScheme,
+  queryBooksScheme,
+  setBookAmountInDepartmentScheme,
+  updateBookScheme,
+} from '../schemas/index.js';
 
-class BooksController extends DefaultController {
-  constructor() {
-    const updatableFields = ['title'];
-    const searchableFields = ['title'];
+export async function createBookController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(req, defaultBooksScheme);
 
-    super(dbTablesNamesEnum.BOOKS, updatableFields, searchableFields);
-  }
+    const bookID = await createRecord(dbTablesNamesEnum.BOOKS, {
+      title: scheme.body.title,
+    });
 
-  add() {
-    return async (req, res, next) => {
-      try {
-        const fields = {
-          title: true,
-        };
-        const values = this._getValuesFromRequestBody(req.body, fields);
+    await addBookAuthors(bookID, scheme.body.authorsIDs);
 
-        if (typeof values === 'string') {
-          return res
-            .status(404)
-            .send(`Field with name '${values}' is necessary`);
-        }
-
-        const query = sql
-          .insert(this._tableName, Object.keys(fields))
-          .values(values)
-          .toParams({ placeholder: '?' });
-
-        await connection.query(query.text, query.values);
-
-        res.status(200).send('ok');
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  get() {
-    return async (req, res, next) => {
-      try {
-        await super.get(res, req);
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  givenAmount() {
-    return async (req, res, next) => {
-      try {
-        const id = req.query.id;
-
-        const query = sql
-          .select('givenBooksAmount')
-          .from(this._tableName)
-          .where(sql.eq('id', id))
-          .toParams({ placeholder: '?' });
-
-        const givenAmount = (
-          await connection.query(query.text, query.values)
-        )[0][0].givenBooksAmount;
-
-        res.status(200).json(givenAmount);
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  update() {
-    return async (req, res, next) => {
-      try {
-        await super.update(req, res);
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  giveToReader() {
-    return async (req, res, next) => {
-      try {
-        const id = req.body.id;
-        const readerID = req.body.readerID;
-        const user = await getUserBySession(req.body.sessionID);
-        const departmentID = req.body.departmentID;
-
-        if (!(await recordExist(id, this._tableName))) {
-          return res.status(404).send(`Book with ID ${id} doesn't exist`);
-        }
-
-        if (!(await recordExist(readerID, dbTablesNamesEnum.READERS))) {
-          return res
-            .status(404)
-            .send(`Reader with ID ${readerID} doesn't exist`);
-        }
-
-        if (!(await recordExist(departmentID, dbTablesNamesEnum.DEPARTMENTS))) {
-          return res.status(404).send(`Department with ID ${id} doesn't exist`);
-        }
-
-        const bookAmountInDepartment = await this._getBookAmountFromDepartment(
-          id,
-          departmentID
-        );
-
-        if (bookAmountInDepartment - 1 < 0) {
-          return res.status(400).send(`Amount of books with id '${id} is 0'`);
-        }
-
-        const reader = await this._getReader(readerID);
-
-        if (reader.booksAmount + 1 > MAX_BOOKS_FOR_READER) {
-          return res.status(400).send('Reader has maximum of books');
-        }
-
-        if (reader.isAction === accountStatusesEnum.BLOCKED) {
-          return res.status(400).send(`Reader with id ${readerID} is blocked`);
-        }
-
-        await this._addGivenBookInDepartment(id, departmentID);
-        await this._getBookToReader(id, readerID, departmentID, user.id);
-
-        res.status(200).send('ok');
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  remove() {
-    return async (req, res, next) => {
-      try {
-        const queryGetBook = sql
-          .select()
-          .from(this._tableName)
-          .where(sql.eq('id', req.body.id))
-          .toParams({ placeholder: '?' });
-
-        const book = (
-          await connection.query(queryGetBook.text, queryGetBook.values)
-        )[0][0];
-
-        if (book.givenBookAmount > 0) {
-          return res
-            .status(400)
-            .send(`Not all of the books with id ${req.body.id}} was returned`);
-        }
-
-        const deleteBookFromDepartmentsQuery = sql
-          .delete(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS)
-          .where('bookID', req.body.id);
-
-        await connection.query(
-          deleteBookFromDepartmentsQuery.text,
-          deleteBookFromDepartmentsQuery.values
-        );
-
-        await super.remove(req, res);
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  async _getReader(readerID) {
-    const query = sql
-      .select()
-      .from(dbTablesNamesEnum.READERS)
-      .where(sql.eq('id', readerID))
-      .toParams({ placeholder: '?' });
-
-    return (await connection(query.text, query.values))[0][0];
-  }
-
-  async _getBookAmountFromDepartment(bookID, departmentID) {
-    const query = sql
-      .select()
-      .from(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS)
-      .where(
-        sql.and(sql.eq('bookID', bookID), sql.eq('departmentID', departmentID))
-      )
-      .toParams({ placeholder: '?' });
-
-    const result = (await connection.query(query.text, query.values))[0];
-
-    return result.length > 0 ? result[0].booksAmount : 0;
-  }
-
-  async _addGivenBookInDepartment(bookID, departmentID) {
-    const query = sql
-      .update([this._tableName, dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS])
-      .set('allBooksAmount', sql('allBooksAmount + 1'))
-      .set('booksAmount', sql('booksAmount + 1'))
-      .where(
-        sql.and(
-          sql.eq(`${dbTablesNamesEnum}.id`, bookID),
-          sql.eq('bookID', bookID),
-          sql.eq('departmentID', departmentID)
-        )
-      )
-      .toParams({ placeholder: '?' });
-
-    await connection.query(query.text, query.values);
-  }
-
-  async _getBookToReader(bookID, readerID, departmentID, employeeID) {
-    const getBookToReader = sql
-      .update(dbTablesNamesEnum.READERS)
-      .set('booksAmount', sql('booksAmount + 1'))
-      .where(sql.eq('id', readerID))
-      .toParams({ placeholder: '?' });
-
-    const addHistoryRecord = sql
-      .insert(dbTablesNamesEnum.GIVEN_BOOKS)
-      .values({
-        bookID,
-        readerID,
-        departmentID,
-        employeeID,
-        dateAndTime: sql('NOW()'),
-      })
-      .toParams({ placeholder: '?' });
-
-    await connection.query(getBookToReader.text, getBookToReader.values);
-    await connection.query(addHistoryRecord.text, addHistoryRecord.values);
+    res.status(201).send();
+  } catch (e) {
+    next(e);
   }
 }
 
-export const booksController = new BooksController();
+export async function giveBookToReaderController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(req, giveBookToReaderScheme);
+
+    const bookID = scheme.params.bookID;
+    const readerID = scheme.params.readerID;
+    const departmentID = scheme.body.departmentID;
+
+    if ((await getBookAmountInDepartment(bookID, departmentID)) <= 0) {
+      res.statusMessage = 'There are not books to give in department';
+      return res.status(409).send();
+    }
+
+    const reader = await getReaderByID(readerID);
+
+    if (reader.status === accountStatusesEnum.BLOCKED) {
+      res.statusMessage = `Reader with id '${scheme.params.readerID}' is blocked`;
+      return res.status(409).send();
+    }
+
+    if (reader.gotBooksAmount >= MAX_BOOKS_FOR_READER) {
+      res.statusMessage = `Reader with id '${scheme.params.readerID}' has maximum amount of books`;
+      return res.status(409).send();
+    }
+
+    const authorID = (await getUserBySession(req.cookies.sessionID)).id;
+
+    await changeGivenBook(bookID, readerID, departmentID);
+    await createRecord(dbTablesNamesEnum.GIVEN_BOOKS, {
+      bookID,
+      readerID,
+      departmentID,
+      recordAuthorID: authorID,
+      giveDateTime: sql('NOW()'),
+    });
+
+    return res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function queryBooksController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(req, queryBooksScheme);
+    const authorsIDs = scheme.query.authorsIDs;
+
+    if (authorsIDs && !Array.isArray(authorsIDs)) {
+      scheme.query.authorsIDs = [authorsIDs];
+    }
+
+    return res
+      .status(200)
+      .send(
+        paginateValues(
+          scheme,
+          await getBooksResources(await queryBooksIDs(scheme.query))
+        )
+      );
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getBookByIdController(req, res, next) {
+  try {
+    return res.status(200).send(await getBookResourceByID(req.params.id));
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getBookTotalAmountController(req, res, next) {
+  try {
+    return res.status(200).send({
+      totalAmount: (await getBookRecordByID(req.params.id)).totalAmount,
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getBookGivenAmountController(req, res, next) {
+  try {
+    return res.status(200).send({
+      givenAmount: (await getBookRecordByID(req.params.id)).givenAmount,
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getBookAmountDetailsInDepartmentsController(
+  req,
+  res,
+  next
+) {
+  try {
+    return res
+      .status(200)
+      .send(await getBookAmountDetailsInDepartments(req.params.id));
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getBookAmountDetailsInSingleDepartmentController(
+  req,
+  res,
+  next
+) {
+  try {
+    const departmentID = req.params.departmentID;
+
+    const amountDetails = (
+      await queryRecords(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS, req.params, [
+        'departmentID',
+        'totalAmount',
+        'givenAmount',
+      ])
+    )[0];
+
+    return res
+      .status(200)
+      .send(amountDetails || { departmentID, totalAmount: 0, givenAmount: 0 });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function setBookAmountInDepartmentController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(req, setBookAmountInDepartmentScheme);
+
+    const bookInDepartmentRecord = (
+      await queryRecords(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS, scheme.params)
+    )[0];
+
+    let deltaAmountOfBooks;
+
+    if (bookInDepartmentRecord) {
+      await changeRecordData(
+        bookInDepartmentRecord.id,
+        dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS,
+        scheme.body
+      );
+      deltaAmountOfBooks =
+        scheme.body.totalAmount - bookInDepartmentRecord.totalAmount;
+    } else {
+      await createRecord(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS, {
+        ...scheme.params,
+        ...scheme.body,
+      });
+      deltaAmountOfBooks = scheme.body.totalAmount;
+    }
+
+    await increaseValueBy(
+      dbTablesNamesEnum.BOOKS,
+      scheme.params.bookID,
+      'totalAmount',
+      deltaAmountOfBooks
+    );
+
+    await increaseValueBy(
+      dbTablesNamesEnum.DEPARTMENTS,
+      scheme.params.departmentID,
+      'totalBooksAmount',
+      deltaAmountOfBooks
+    );
+
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function updateBookController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(req, updateBookScheme);
+    const id = scheme.params.id;
+
+    await changeRecordData(id, dbTablesNamesEnum.BOOKS, {
+      title: scheme.body.title,
+    });
+
+    await deleteBookAuthors(id);
+    await addBookAuthors(id, scheme.body.authorsIDs);
+
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function deleteBookController(req, res, next) {
+  try {
+    const id = req.params.id;
+    const book = (await queryRecords(dbTablesNamesEnum.BOOKS, { id }))[0];
+
+    if (book.givenAmount > 0) {
+      res.statusMessage = 'There are not returned books';
+      return res.status(409).send();
+    }
+
+    await deleteBookFromDepartments(id);
+    await deleteBookAuthors(id);
+
+    await deleteRecord(id, dbTablesNamesEnum.BOOKS);
+
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+}
+
+async function addBookAuthors(bookID, authors) {
+  if (authors.length <= 0) return;
+
+  const query = sql
+    .insert(
+      dbTablesNamesEnum.BOOK_AUTHORS,
+      authors.map((authorID) => ({ bookID, authorID }))
+    )
+    .toParams({ placeholder: '?' });
+
+  await connection.query(query.text, query.values);
+}
+
+async function getBookAmountInDepartment(bookID, departmentID) {
+  const bookAmountDetails = await getAmountDetailsOfBookInDepartment(
+    bookID,
+    departmentID
+  );
+
+  return bookAmountDetails.totalAmount - bookAmountDetails.givenAmount;
+}
+
+async function queryBooksIDs({ title, authorsIDs = [] }) {
+  let query = sql
+    .select('bookID')
+    .from(dbTablesNamesEnum.BOOK_AUTHORS)
+    .join(dbTablesNamesEnum.BOOKS)
+    .on(
+      `${dbTablesNamesEnum.BOOKS}.id`,
+      `${dbTablesNamesEnum.BOOK_AUTHORS}.bookID`
+    );
+
+  const conditions = [];
+
+  title && conditions.push(sql.eq('title', title));
+  authorsIDs.length > 0 &&
+    conditions.push(sql.or(authorsIDs.map((id) => sql.eq('authorID', id))));
+
+  if (conditions.length > 0) {
+    query = query.where(sql.and(conditions));
+  }
+
+  query = query.toParams({ placeholder: '?' });
+
+  query.text += ` GROUP BY bookID HAVING COUNT(*) >= ${authorsIDs.length}`;
+
+  return (await connection.query(query.text, query.values))[0].map(
+    (record) => record.bookID
+  );
+}
+
+async function getBooksResources(booksIDs) {
+  if (booksIDs.length === 0) return [];
+
+  const queryBooks = sql
+    .select('bookID', 'title', 'authorID')
+    .from(dbTablesNamesEnum.BOOK_AUTHORS)
+    .join(dbTablesNamesEnum.BOOKS)
+    .on(
+      `${dbTablesNamesEnum.BOOKS}.id`,
+      `${dbTablesNamesEnum.BOOK_AUTHORS}.bookID`
+    )
+    .where(sql.or(booksIDs.map((id) => sql.eq('bookID', id))))
+    .toParams({ placeholder: '?' });
+
+  const booksData = (
+    await connection.query(queryBooks.text, queryBooks.values)
+  )[0];
+  const results = [];
+
+  booksData.forEach((data) => {
+    const resource = results.find((resource) => data.bookID === resource.id);
+
+    if (resource) {
+      resource.authorsIDs.push(data.authorID);
+      return;
+    }
+
+    results.push({
+      id: data.bookID,
+      title: data.title,
+      authorsIDs: [data.authorID],
+    });
+  });
+
+  return results;
+}
+
+async function getBookResourceByID(bookID) {
+  const book = await getBookRecordByID(bookID, ['id', 'title']);
+
+  const authorsIDsRecords = await queryRecords(
+    dbTablesNamesEnum.BOOK_AUTHORS,
+    {
+      bookID,
+    },
+    ['authorID']
+  );
+  return {
+    ...book,
+    authorsIDs: authorsIDsRecords.map((value) => value.authorID),
+  };
+}
+
+async function getBookRecordByID(id, columns) {
+  return (await queryRecords(dbTablesNamesEnum.BOOKS, { id }, columns))[0];
+}
+
+async function getBookAmountDetailsInDepartments(bookID) {
+  return await queryRecords(
+    dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS,
+    {
+      bookID,
+    },
+    ['departmentID', 'totalAmount', 'givenAmount']
+  );
+}
+
+async function deleteBookFromDepartments(bookID) {
+  const queryTexts = [];
+  const queryValues = [];
+
+  const bookAmountInDepartments =
+    await getBookAmountDetailsInDepartments(bookID);
+
+  bookAmountInDepartments.forEach((value) => {
+    const query = sql
+      .update(dbTablesNamesEnum.DEPARTMENTS)
+      .set('totalBooksAmount', sql(`totalBooksAmount - ${value.totalAmount}`))
+      .where(sql.eq('id', value.departmentID))
+      .toParams({ placeholder: '?' });
+
+    queryTexts.push(query.text);
+    queryValues.push(query.values);
+  });
+
+  await connection.query(queryTexts.join(';'), queryValues.flat());
+
+  const query = sql
+    .delete(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS)
+    .where(sql.eq('bookID', bookID))
+    .toParams({ placeholder: '?' });
+
+  await connection.query(query.text, query.values);
+}
+
+async function deleteBookAuthors(bookID) {
+  const query = sql
+    .delete(dbTablesNamesEnum.BOOK_AUTHORS)
+    .where(sql.eq('bookID', bookID))
+    .toParams({ placeholder: '?' });
+  await connection.query(query.text, query.values);
+}

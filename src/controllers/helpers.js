@@ -1,3 +1,7 @@
+import { connection, increaseValueBy, queryRecords } from '../helpers/index.js';
+import { dbTablesNamesEnum } from '../shared/index.js';
+import sql from 'mysql-bricks';
+
 export function getSchemeFields(request, scheme) {
   const result = {};
 

@@ -50,16 +50,12 @@ export async function recordExist(recordID, tableName) {
 }
 
 export async function allRecordsExist(tableName, ...IDs) {
-  const condition = sql.or(
-    IDs.map((id) => ({
-      id,
-    }))
-  );
+  if (IDs.length === 0) return true;
 
-  const query = sql
+  let query = sql
     .select('COUNT(id) as recordsAmount')
     .from(tableName)
-    .where(condition)
+    .where(sql.or(IDs.map((id) => sql.eq('id', id))))
     .toParams({ placeholder: '?' });
 
   const recordsAmountExist = (
@@ -162,4 +158,56 @@ export async function decreaseEmployeesAmountByOne(departmentID) {
     'employeesAmount',
     -1
   );
+}
+
+export async function getReaderByID(id) {
+  return (await queryRecords(dbTablesNamesEnum.READERS, { id }))[0];
+}
+
+export async function getAmountDetailsOfBookInDepartment(bookID, departmentID) {
+  const query = sql
+    .select(['totalAmount', 'givenAmount'])
+    .from(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS)
+    .where(
+      sql.and(sql.eq('bookID', bookID), sql.eq('departmentID', departmentID))
+    )
+    .toParams({ placeholder: '?' });
+
+  return (
+    (await connection.query(query.text, query.values))[0][0] || {
+      totalAmount: 0,
+      givenAmount: 0,
+    }
+  );
+}
+
+export async function changeGivenBook(
+  bookID,
+  readerID,
+  departmentID,
+  deltaAmount = 1
+) {
+  await increaseValueBy(dbTablesNamesEnum.BOOKS, bookID, 'givenAmount', 1);
+  await increaseValueBy(
+    dbTablesNamesEnum.READERS,
+    readerID,
+    'gotBooksAmount',
+    1
+  );
+  await increaseValueBy(
+    dbTablesNamesEnum.DEPARTMENTS,
+    departmentID,
+    'givenBooksAmount',
+    1
+  );
+
+  const query = sql
+    .update(dbTablesNamesEnum.BOOKS_IN_DEPARTMENTS)
+    .set('givenAmount', sql(`givenAmount + ${deltaAmount}`))
+    .where(
+      sql.and(sql.eq('departmentID', departmentID), sql.eq('bookID', bookID))
+    )
+    .toParams({ placeholder: '?' });
+
+  await connection.query(query.text, query.values);
 }
