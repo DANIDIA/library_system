@@ -216,7 +216,7 @@ export async function setBookAmountInDepartmentController(req, res, next) {
 
 export async function updateBookController(req, res, next) {
   try {
-    const scheme = getSchemeFields(updateBookScheme);
+    const scheme = getSchemeFields(req, updateBookScheme);
     const id = scheme.params.id;
 
     await changeRecordData(id, dbTablesNamesEnum.BOOKS, {
