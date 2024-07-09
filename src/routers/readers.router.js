@@ -10,7 +10,7 @@ import {
 } from '../controllers/index.js';
 import {
   accessReaderScheme,
-  defaultBooksScheme,
+  defaultReadersScheme,
   returnBookScheme,
   updateReaderScheme,
 } from '../schemas/index.js';
@@ -21,7 +21,7 @@ readersRouter.use(authenticate);
 
 readersRouter.post(
   '/',
-  validateScheme(defaultBooksScheme),
+  validateScheme(defaultReadersScheme),
   createReaderController
 );
 readersRouter.post(
