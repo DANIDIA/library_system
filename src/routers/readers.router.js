@@ -1,14 +1,51 @@
 import express from 'express';
-import { readersController } from '../controllers/index.js';
-import { authenticate } from '../middleware/index.js';
+import { authenticate, validateScheme } from '../middleware/index.js';
+import {
+  createReaderController,
+  deleteReaderController,
+  getReaderBooksController,
+  getReaderByIdController,
+  returnReaderBookController,
+  updateReaderController,
+} from '../controllers/index.js';
+import {
+  accessReaderScheme,
+  defaultBooksScheme,
+  returnBookScheme,
+  updateReaderScheme,
+} from '../schemas/index.js';
 
 export const readersRouter = express.Router();
 
 readersRouter.use(authenticate);
 
-readersRouter.post('/add', readersController.add());
-readersRouter.post('/return_book', readersController.returnBook());
-readersRouter.get('/get', readersController.get());
-readersRouter.put('/update', readersController.update());
-readersRouter.put('/change_status', readersController.changeStatus());
-readersRouter.delete('/remove', readersController.remove());
+readersRouter.post(
+  '/',
+  validateScheme(defaultBooksScheme),
+  createReaderController
+);
+readersRouter.post(
+  '/:readerID/return-book/:bookID',
+  validateScheme(returnBookScheme),
+  returnReaderBookController
+);
+readersRouter.get(
+  '/:id',
+  validateScheme(accessReaderScheme),
+  getReaderByIdController
+);
+readersRouter.get(
+  '/:id',
+  validateScheme(accessReaderScheme),
+  getReaderBooksController
+);
+readersRouter.put(
+  '/:id',
+  validateScheme(updateReaderScheme),
+  updateReaderController
+);
+readersRouter.delete(
+  '/:id',
+  validateScheme(accessReaderScheme),
+  deleteReaderController
+);
