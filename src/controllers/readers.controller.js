@@ -7,6 +7,7 @@ import {
   getBooksResources,
   getReaderByID,
   getUserBySession,
+  hasDuplicatedValue,
   queryRecords,
 } from '../helpers/index.js';
 import { dbTablesNamesEnum, rolesEnum } from '../shared/index.js';
@@ -23,10 +24,21 @@ export async function createReaderController(req, res, next) {
     const scheme = getSchemeFields(req, defaultReadersScheme);
     const author = await getUserBySession(req.cookies.sessionID);
 
+    if (
+      !(await checkFieldDuplicate(
+        'phoneNumber',
+        scheme.body.phoneNumber,
+        res
+      )) ||
+      !(await checkFieldDuplicate('email', scheme.body.email, res))
+    ) {
+      return;
+    }
+
     const id = await createRecord(dbTablesNamesEnum.READERS, {
       ...scheme.body,
       recordAuthorID: author.id,
-      additionData: sql('NOW()'),
+      additionDate: sql('NOW()'),
     });
 
     res.status(201).send({ id });
@@ -156,4 +168,14 @@ export async function deleteReaderController(req, res, next) {
   } catch (e) {
     next(e);
   }
+}
+
+async function checkFieldDuplicate(field, value, res) {
+  if (await hasDuplicatedValue(dbTablesNamesEnum.READERS, field, value)) {
+    res.statusMessage = `Value of field '${field}' has duplicate`;
+    res.status(409).send();
+    return false;
+  }
+
+  return true;
 }
