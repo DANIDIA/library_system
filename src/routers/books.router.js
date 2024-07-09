@@ -21,6 +21,7 @@ import {
   giveBookToReaderScheme,
   queryBooksScheme,
   setBookAmountInDepartmentScheme,
+  updateBookScheme,
 } from '../schemas/index.js';
 
 export const booksRouter = express.Router();
@@ -75,7 +76,7 @@ booksRouter.patch(
   setBookAmountInDepartmentController
 );
 
-booksRouter.put('/:id', validateScheme(accessBookScheme), updateBookController);
+booksRouter.put('/:id', validateScheme(updateBookScheme), updateBookController);
 
 booksRouter.delete(
   '/:id',
