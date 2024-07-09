@@ -89,14 +89,14 @@ export async function queryBooksController(req, res, next) {
       scheme.query.authorsIDs = [authorsIDs];
     }
 
+    const results = await getBooksResources(await queryBooksIDs(scheme.query));
+
     return res
       .status(200)
-      .send(
-        paginateValues(
-          scheme,
-          await getBooksResources(await queryBooksIDs(scheme.query))
-        )
-      );
+      .send({
+        allResultsAmount: results.length,
+        results: paginateValues(results),
+      });
   } catch (e) {
     next(e);
   }
