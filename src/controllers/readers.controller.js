@@ -138,16 +138,10 @@ export async function updateReaderController(req, res, next) {
   try {
     const scheme = getSchemeFields(req, updateReaderScheme);
 
-    const valuesToUpdate = { ...scheme.body };
-
-    if (Object.hasOwn(valuesToUpdate, 'status')) {
-      valuesToUpdate.status = valuesToUpdate.status === 'true';
-    }
-
     await changeRecordData(
       scheme.params.id,
       dbTablesNamesEnum.READERS,
-      valuesToUpdate
+      scheme.body
     );
 
     res.status(200).send();
