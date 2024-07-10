@@ -103,7 +103,7 @@ export async function queryReadersController(req, res, next) {
 
     res.status(200).send({
       allResultsAmount: results.length,
-      results: paginateValues(results),
+      results: paginateValues(scheme, results),
     });
   } catch (e) {
     next(e);
