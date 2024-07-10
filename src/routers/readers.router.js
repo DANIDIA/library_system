@@ -42,7 +42,7 @@ readersRouter.get(
   getReaderByIdController
 );
 readersRouter.get(
-  '/:id',
+  '/:id/given-books',
   validateScheme(accessReaderScheme),
   getReaderBooksController
 );
