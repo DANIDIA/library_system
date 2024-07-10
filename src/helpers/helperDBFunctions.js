@@ -189,18 +189,23 @@ export async function changeGivenBook(
   departmentID,
   deltaAmount = 1
 ) {
-  await increaseValueBy(dbTablesNamesEnum.BOOKS, bookID, 'givenAmount', 1);
+  await increaseValueBy(
+    dbTablesNamesEnum.BOOKS,
+    bookID,
+    'givenAmount',
+    deltaAmount
+  );
   await increaseValueBy(
     dbTablesNamesEnum.READERS,
     readerID,
     'gotBooksAmount',
-    1
+    deltaAmount
   );
   await increaseValueBy(
     dbTablesNamesEnum.DEPARTMENTS,
     departmentID,
     'givenBooksAmount',
-    1
+    deltaAmount
   );
 
   const query = sql
