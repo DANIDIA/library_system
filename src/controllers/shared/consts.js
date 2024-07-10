@@ -18,6 +18,7 @@ export const usersResourceFieldsNames = [
 ];
 
 export const readersResourceFields = [
+  'id',
   'name',
   'surname',
   'phoneNumber',
