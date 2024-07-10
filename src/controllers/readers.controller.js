@@ -52,10 +52,12 @@ export async function returnReaderBookController(req, res, next) {
     const readerID = req.params.readerID;
     const bookID = req.params.bookID;
 
-    const givenBookRecord = await queryRecords(dbTablesNamesEnum.GIVEN_BOOKS, {
-      readerID,
-      bookID,
-    });
+    const givenBookRecord = (
+      await queryRecords(dbTablesNamesEnum.GIVEN_BOOKS, {
+        readerID,
+        bookID,
+      })
+    )[0];
 
     if (!givenBookRecord) {
       res.statusMessage = `Reader with id '${readerID}' has not a book with id '${bookID}'`;
@@ -63,19 +65,19 @@ export async function returnReaderBookController(req, res, next) {
     }
 
     const author = await getUserBySession(req.cookies.sessionID);
-    const departmentToReturn = author.departmnentID;
+    const departmentReturnTo = givenBookRecord.departmentID;
 
     if (
       author.role !== rolesEnum.ADMIN &&
-      departmentToReturn !== givenBookRecord.departmentID
+      departmentReturnTo !== author.departmentID
     ) {
       res.statusMessage =
         'Book must be returned to department where it was taken';
       return res.status(409).send();
     }
 
-    await changeGivenBook(bookID, readerID, departmentToReturn, -1);
-    await deleteRecord(givenBookRecord.id);
+    await changeGivenBook(bookID, readerID, departmentReturnTo, -1);
+    await deleteRecord(givenBookRecord.id, dbTablesNamesEnum.GIVEN_BOOKS);
 
     res.status(200).send();
   } catch (e) {
