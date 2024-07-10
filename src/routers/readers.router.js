@@ -5,12 +5,14 @@ import {
   deleteReaderController,
   getReaderBooksController,
   getReaderByIdController,
+  queryReadersController,
   returnReaderBookController,
   updateReaderController,
 } from '../controllers/index.js';
 import {
   accessReaderScheme,
   defaultReadersScheme,
+  queryReadersScheme,
   returnBookScheme,
   updateReaderScheme,
 } from '../schemas/index.js';
@@ -28,6 +30,11 @@ readersRouter.post(
   '/:readerID/return-book/:bookID',
   validateScheme(returnBookScheme),
   returnReaderBookController
+);
+readersRouter.get(
+  '/',
+  validateScheme(queryReadersScheme),
+  queryReadersController
 );
 readersRouter.get(
   '/:id',
