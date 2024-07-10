@@ -156,10 +156,10 @@ export async function deleteReaderController(req, res, next) {
 
     if (reader.gotBooksAmount > 0) {
       res.statusMessage = `Reader with id '${reader.id}' hasn't return all given books`;
-      res.status(409).send();
+      return res.status(409).send();
     }
 
-    await deleteRecord(req.params.id);
+    await deleteRecord(req.params.id, dbTablesNamesEnum.READERS);
     res.status(200).send();
   } catch (e) {
     next(e);
