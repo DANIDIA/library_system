@@ -101,6 +101,22 @@ export async function queryBooksController(req, res, next) {
   }
 }
 
+export async function getBookAuthorsController(req, res, next) {
+  try {
+    const query = sql
+      .select([`${dbTablesNamesEnum.AUTHORS}.id`, 'name', 'surname'])
+      .from(dbTablesNamesEnum.BOOK_AUTHORS)
+      .join(dbTablesNamesEnum.AUTHORS)
+      .on(`${dbTablesNamesEnum.AUTHORS}.id`, 'authorID')
+      .where(sql.eq('bookID', req.params.id))
+      .toParams({ placeholder: '?' });
+
+    res.status(200).send((await connection.query(query.text, query.values))[0]);
+  } catch (e) {
+    next(e);
+  }
+}
+
 export async function getBookByIdController(req, res, next) {
   try {
     return res.status(200).send(await getBookResourceByID(req.params.id));
