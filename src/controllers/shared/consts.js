@@ -16,3 +16,12 @@ export const usersResourceFieldsNames = [
   'status',
   'departmentID',
 ];
+
+export const readersResourceFields = [
+  'id',
+  'name',
+  'surname',
+  'phoneNumber',
+  'email',
+  'status',
+];

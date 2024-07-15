@@ -1,188 +1,177 @@
 import sql from 'mysql-bricks';
-import { connection, getUserBySession } from '../helpers/index.js';
-import { accountStatusesEnum, dbTablesNamesEnum } from '../shared/index.js';
-import { DefaultController } from './default.controller.js';
 import {
-  validateEmail,
-  validatePhoneNumber,
-} from '../helpers/contactDetailsValidators.js';
+  changeGivenBook,
+  changeRecordData,
+  createRecord,
+  deleteRecord,
+  getBooksResources,
+  getReaderByID,
+  getUserBySession,
+  hasDuplicatedValue,
+  queryRecords,
+} from '../helpers/index.js';
+import { dbTablesNamesEnum, rolesEnum } from '../shared/index.js';
+import { getSchemeFields, paginateValues } from './helpers.js';
+import {
+  defaultReadersScheme,
+  queryReadersScheme,
+  updateReaderScheme,
+} from '../schemas/index.js';
+import { readersResourceFields } from './shared/index.js';
 
-class ReadersController extends DefaultController {
-  constructor() {
-    const updatableFields = ['name', 'surname', 'phoneNumber', 'email'];
-    const searchableFields = ['name', 'surname', 'phoneNumber', 'email'];
-    super(dbTablesNamesEnum.READERS, updatableFields, searchableFields);
-  }
+export async function createReaderController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(req, defaultReadersScheme);
+    const author = await getUserBySession(req.cookies.sessionID);
 
-  add() {
-    return async (req, res, next) => {
-      try {
-        const user = await getUserBySession(req.body.sessionID);
+    if (
+      !(await checkFieldDuplicate(
+        'phoneNumber',
+        scheme.body.phoneNumber,
+        res
+      )) ||
+      !(await checkFieldDuplicate('email', scheme.body.email, res))
+    ) {
+      return;
+    }
 
-        const fields = {
-          name: true,
-          surname: true,
-          phoneNumber: true,
-          email: false,
-        };
-        const values = this._getValuesFromRequestBody(req.body, fields);
+    const id = await createRecord(dbTablesNamesEnum.READERS, {
+      ...scheme.body,
+      recordAuthorID: author.id,
+      additionDate: sql('NOW()'),
+    });
 
-        if (typeof values === 'string') {
-          return res
-            .status(404)
-            .send(`Field with name '${values}' is necessary`);
-        }
-
-        if (validateEmail(req, res) || validatePhoneNumber(req, res)) {
-          return;
-        }
-
-        const query = sql
-          .insert(this._tableName, [
-            ...Object.keys(fields),
-            'booksAmount',
-            'whoAddID',
-            'isActive',
-            'additionDate',
-          ])
-          .values([
-            ...values,
-            0,
-            user.id,
-            accountStatusesEnum.ACTIVE,
-            sql('NOW()'),
-          ])
-          .toParams({ placeholder: '?' });
-
-        await connection.query(query.text, query.values);
-
-        res.status(200).json('ok');
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  get() {
-    return async (req, res, next) => {
-      try {
-        await super.get(req, res);
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  update() {
-    return async (req, res, next) => {
-      try {
-        if (validateEmail(req, res) || validatePhoneNumber(req, res)) {
-          return;
-        }
-
-        await super.update(req, res);
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  returnBook() {
-    return async (req, res, next) => {
-      try {
-        const id = req.body.id;
-        const bookID = req.body.bookID;
-
-        const queryGetHistory = sql
-          .select()
-          .from(dbTablesNamesEnum.GIVEN_BOOKS)
-          .where(sql.and(sql.eq('readerID', id), sql.eq('bookID', bookID)))
-          .toParams({ placeholder: '?' });
-
-        const historyRecords = (
-          await connection.query(queryGetHistory.text, queryGetHistory.values)
-        )[0];
-
-        if (historyRecords.length <= 0) {
-          return res
-            .status(400)
-            .send(`Reader with id ${id} hasn't a book with id ${bookID}`);
-        }
-
-        const queryChangeReaderBooksAmount = sql
-          .update(this._tableName)
-          .set('booksAmount', sql('booksAmount - 1'))
-          .where(sql.eq('id', id))
-          .toParams({ placeholder: '?' });
-
-        await connection.query(
-          queryChangeReaderBooksAmount.text,
-          queryChangeReaderBooksAmount.values
-        );
-
-        const queryChangeBooksAmount = sql
-          .update(dbTablesNamesEnum.BOOKS)
-          .set('amount', sql('amount + 1'))
-          .where(sql.eq('id', bookID))
-          .toParams({ placeholder: '?' });
-
-        await connection.query(
-          queryChangeBooksAmount.text,
-          queryChangeBooksAmount.values
-        );
-
-        const deleteHistoryRecord = sql
-          .delete(dbTablesNamesEnum.GIVEN_BOOKS)
-          .where(sql.eq('id', historyRecords[0].id))
-          .toParams({ placeholder: '?' });
-
-        await connection.query(
-          deleteHistoryRecord.text,
-          deleteHistoryRecord.values
-        );
-
-        res.status(200).send('ok');
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  changeStatus() {
-    return async (req, res, next) => {
-      try {
-        await super.changeStatus(req, res);
-      } catch (e) {
-        next(e);
-      }
-    };
-  }
-
-  remove() {
-    return async (req, res, next) => {
-      try {
-        const query = sql
-          .select(sql('COUNT(id) as amount'))
-          .from(dbTablesNamesEnum.GIVEN_BOOKS)
-          .where(sql.eq('readerID', req.body.id))
-          .toParams({ placeholder: '?' });
-
-        const gotBooks = (
-          await connection.query(query.text, query.values)
-        )[0][0];
-
-        if (gotBooks.amount > 0) {
-          return res
-            .status(400)
-            .send(`Reader with id ${req.body.id} didn't return all books`);
-        }
-
-        await super.remove(req, res);
-      } catch (e) {
-        next(e);
-      }
-    };
+    res.status(201).send({ id });
+  } catch (e) {
+    next(e);
   }
 }
 
-export const readersController = new ReadersController();
+export async function returnReaderBookController(req, res, next) {
+  try {
+    const readerID = req.params.readerID;
+    const bookID = req.params.bookID;
+
+    const givenBookRecord = (
+      await queryRecords(dbTablesNamesEnum.GIVEN_BOOKS, {
+        readerID,
+        bookID,
+      })
+    )[0];
+
+    if (!givenBookRecord) {
+      res.statusMessage = `Reader with id '${readerID}' has not a book with id '${bookID}'`;
+      return res.status(409).send();
+    }
+
+    const author = await getUserBySession(req.cookies.sessionID);
+    const departmentReturnTo = givenBookRecord.departmentID;
+
+    if (
+      author.role !== rolesEnum.ADMIN &&
+      departmentReturnTo !== author.departmentID
+    ) {
+      res.statusMessage =
+        'Book must be returned to department where it was taken';
+      return res.status(409).send();
+    }
+
+    await changeGivenBook(bookID, readerID, departmentReturnTo, -1);
+    await deleteRecord(givenBookRecord.id, dbTablesNamesEnum.GIVEN_BOOKS);
+
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function queryReadersController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(req, queryReadersScheme);
+
+    const queryByValues = { ...scheme.query };
+
+    if (Object.hasOwn(queryByValues, 'status')) {
+      queryByValues.status = queryByValues.status === 'true';
+    }
+
+    const results = await queryRecords(
+      dbTablesNamesEnum.READERS,
+      queryByValues,
+      readersResourceFields
+    );
+
+    res.status(200).send({
+      allResultsAmount: results.length,
+      results: paginateValues(scheme, results),
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getReaderByIdController(req, res, next) {
+  try {
+    res
+      .status(200)
+      .send(await getReaderByID(req.params.id, readersResourceFields));
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getReaderBooksController(req, res, next) {
+  try {
+    const givenBooksIDs = (
+      await queryRecords(dbTablesNamesEnum.GIVEN_BOOKS, {
+        readerID: req.params.id,
+      })
+    ).map((record) => record.bookID);
+
+    res.status(200).send(await getBooksResources(givenBooksIDs));
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function updateReaderController(req, res, next) {
+  try {
+    const scheme = getSchemeFields(req, updateReaderScheme);
+
+    await changeRecordData(
+      scheme.params.id,
+      dbTablesNamesEnum.READERS,
+      scheme.body
+    );
+
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function deleteReaderController(req, res, next) {
+  try {
+    const reader = await getReaderByID(req.params.id);
+
+    if (reader.gotBooksAmount > 0) {
+      res.statusMessage = `Reader with id '${reader.id}' hasn't return all given books`;
+      return res.status(409).send();
+    }
+
+    await deleteRecord(req.params.id, dbTablesNamesEnum.READERS);
+    res.status(200).send();
+  } catch (e) {
+    next(e);
+  }
+}
+
+async function checkFieldDuplicate(field, value, res) {
+  if (await hasDuplicatedValue(dbTablesNamesEnum.READERS, field, value)) {
+    res.statusMessage = `Value of field '${field}' has duplicate`;
+    res.status(409).send();
+    return false;
+  }
+
+  return true;
+}
