@@ -94,8 +94,24 @@ export async function queryBooksController(req, res, next) {
 
     return res.status(200).send({
       allResultsAmount: results.length,
-      results: paginateValues(results),
+      results: paginateValues(scheme, results),
     });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getBookAuthorsController(req, res, next) {
+  try {
+    const query = sql
+      .select([`${dbTablesNamesEnum.AUTHORS}.id`, 'name', 'surname'])
+      .from(dbTablesNamesEnum.BOOK_AUTHORS)
+      .join(dbTablesNamesEnum.AUTHORS)
+      .on(`${dbTablesNamesEnum.AUTHORS}.id`, 'authorID')
+      .where(sql.eq('bookID', req.params.id))
+      .toParams({ placeholder: '?' });
+
+    res.status(200).send((await connection.query(query.text, query.values))[0]);
   } catch (e) {
     next(e);
   }
@@ -276,19 +292,16 @@ async function getBookAmountInDepartment(bookID, departmentID) {
 
 async function queryBooksIDs({ title, authorsIDs = [] }) {
   let query = sql
-    .select('bookID')
-    .from(dbTablesNamesEnum.BOOK_AUTHORS)
-    .join(dbTablesNamesEnum.BOOKS)
-    .on(
-      `${dbTablesNamesEnum.BOOKS}.id`,
-      `${dbTablesNamesEnum.BOOK_AUTHORS}.bookID`
-    );
+    .select(`${dbTablesNamesEnum.BOOKS}.id`)
+    .from([dbTablesNamesEnum.BOOKS, dbTablesNamesEnum.BOOK_AUTHORS]);
 
   const conditions = [];
 
   title && conditions.push(sql.eq('title', title));
-  authorsIDs.length > 0 &&
+  if (authorsIDs.length > 0) {
+    conditions.push(sql.eq(`${dbTablesNamesEnum.BOOKS}.id`, sql('bookID')));
     conditions.push(sql.or(authorsIDs.map((id) => sql.eq('authorID', id))));
+  }
 
   if (conditions.length > 0) {
     query = query.where(sql.and(conditions));
@@ -296,10 +309,10 @@ async function queryBooksIDs({ title, authorsIDs = [] }) {
 
   query = query.toParams({ placeholder: '?' });
 
-  query.text += ` GROUP BY bookID HAVING COUNT(*) >= ${authorsIDs.length}`;
+  query.text += ` GROUP BY ${dbTablesNamesEnum.BOOKS}.id HAVING COUNT(*) >= ${authorsIDs.length}`;
 
   return (await connection.query(query.text, query.values))[0].map(
-    (record) => record.bookID
+    (record) => record.id
   );
 }
 

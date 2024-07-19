@@ -5,6 +5,7 @@ import {
   deleteBookController,
   getBookAmountDetailsInDepartmentsController,
   getBookAmountDetailsInSingleDepartmentController,
+  getBookAuthorsController,
   getBookByIdController,
   getBookGivenAmountController,
   getBookTotalAmountController,
@@ -43,6 +44,12 @@ booksRouter.get(
   '/:id',
   validateScheme(accessBookScheme),
   getBookByIdController
+);
+
+booksRouter.get(
+  '/:id/authors',
+  validateScheme(accessBookScheme),
+  getBookAuthorsController
 );
 
 booksRouter.get(

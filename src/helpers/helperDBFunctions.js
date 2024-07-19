@@ -223,14 +223,16 @@ export async function getBooksResources(booksIDs) {
   if (booksIDs.length === 0) return [];
 
   const queryBooks = sql
-    .select('bookID', 'title', 'authorID')
+    .select(`${dbTablesNamesEnum.BOOKS}.id`, 'title', 'authorID')
     .from(dbTablesNamesEnum.BOOK_AUTHORS)
-    .join(dbTablesNamesEnum.BOOKS)
+    .rightJoin(dbTablesNamesEnum.BOOKS)
     .on(
       `${dbTablesNamesEnum.BOOKS}.id`,
       `${dbTablesNamesEnum.BOOK_AUTHORS}.bookID`
     )
-    .where(sql.or(booksIDs.map((id) => sql.eq('bookID', id))))
+    .where(
+      sql.or(booksIDs.map((id) => sql.eq(`${dbTablesNamesEnum.BOOKS}.id`, id)))
+    )
     .toParams({ placeholder: '?' });
 
   const booksData = (
@@ -239,7 +241,7 @@ export async function getBooksResources(booksIDs) {
   const results = [];
 
   booksData.forEach((data) => {
-    const resource = results.find((resource) => data.bookID === resource.id);
+    const resource = results.find((resource) => data.id === resource.id);
 
     if (resource) {
       resource.authorsIDs.push(data.authorID);
@@ -247,9 +249,9 @@ export async function getBooksResources(booksIDs) {
     }
 
     results.push({
-      id: data.bookID,
+      id: data.id,
       title: data.title,
-      authorsIDs: [data.authorID],
+      authorsIDs: data.authorID ? [data.authorID] : [],
     });
   });
 
